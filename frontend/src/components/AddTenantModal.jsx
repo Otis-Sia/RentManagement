@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import SearchableSelect from './SearchableSelect';
 
 const AddTenantModal = ({ isOpen, onClose, onTenantAdded, preselectedPropertyId }) => {
     const [properties, setProperties] = useState([]);
@@ -156,24 +157,24 @@ const AddTenantModal = ({ isOpen, onClose, onTenantAdded, preselectedPropertyId 
 
                     <div>
                         <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>House / Property</label>
-                        <select
+                        <SearchableSelect
                             name="property"
                             value={formData.property}
-                            onChange={handleChange}
-                            required
-                            disabled={!!preselectedPropertyId}
-                            style={{
-                                ...inputStyle,
-                                opacity: preselectedPropertyId ? 0.7 : 1,
+                            onChange={(e) => {
+                                // Adapt change event to match expected format if needed, 
+                                // but SearchableSelect already mimics event structure
+                                handleChange(e);
                             }}
-                        >
-                            <option value="">Select a property</option>
-                            {properties.map(property => (
-                                <option key={property.id} value={property.id} disabled={property.is_occupied && property.id !== parseInt(preselectedPropertyId)}>
-                                    House {property.house_number} {property.is_occupied ? '(Occupied)' : ''}
-                                </option>
-                            ))}
-                        </select>
+                            required
+                            options={properties.map(p => ({
+                                id: p.id,
+                                label: `House ${p.house_number} - ${p.address} ${p.is_occupied ? '(Occupied)' : ''}`,
+                                disabled: p.is_occupied && p.id !== parseInt(preselectedPropertyId),
+                                ...p
+                            })).filter(p => !p.disabled)} // Filter out occupied properties unless preselected
+                            placeholder="Select a property"
+                            valueKey="id"
+                        />
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -280,8 +281,8 @@ const AddTenantModal = ({ isOpen, onClose, onTenantAdded, preselectedPropertyId 
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

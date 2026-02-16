@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import SearchableSelect from './SearchableSelect';
 
 const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
     const [properties, setProperties] = useState([]);
@@ -196,20 +197,20 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                 <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
                     <div>
                         <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>House Number</label>
-                        <select
+                        <SearchableSelect
                             name="house_id"
                             value={formData.house_id}
                             onChange={handleHouseChange}
                             required
-                            style={inputStyle}
-                        >
-                            <option value="">Select a house</option>
-                            {properties.map(property => (
-                                <option key={property.id} value={property.id}>
-                                    House {property.house_number} ({property.current_tenant_name})
-                                </option>
-                            ))}
-                        </select>
+                            options={properties.map(p => ({
+                                id: p.id,
+                                label: `House ${p.house_number} - ${p.address} (${p.current_tenant_name || 'Vacant'})`,
+                                ...p // spread other props just in case
+                            }))}
+                            placeholder="Select a house"
+                            labelKey="label"
+                            valueKey="id"
+                        />
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>

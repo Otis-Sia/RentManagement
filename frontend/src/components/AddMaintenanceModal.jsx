@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import SearchableSelect from './SearchableSelect';
 
 const AddMaintenanceModal = ({ isOpen, onClose, onRequestAdded }) => {
     const [properties, setProperties] = useState([]);
@@ -156,20 +157,19 @@ const AddMaintenanceModal = ({ isOpen, onClose, onRequestAdded }) => {
                 <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
                     <div>
                         <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>House Number</label>
-                        <select
+                        <SearchableSelect
                             name="house_id"
                             value={formData.house_id}
                             onChange={handleHouseChange}
                             required
-                            style={inputStyle}
-                        >
-                            <option value="">Select a house</option>
-                            {properties.map(property => (
-                                <option key={property.id} value={property.id}>
-                                    House {property.house_number} {property.is_occupied ? `(${property.current_tenant_name})` : '(Vacant)'}
-                                </option>
-                            ))}
-                        </select>
+                            options={properties.map(p => ({
+                                id: p.id,
+                                label: `House ${p.house_number} - ${p.address} ${p.is_occupied ? `(${p.current_tenant_name})` : '(Vacant)'}`,
+                                ...p
+                            }))}
+                            placeholder="Select a house"
+                            valueKey="id"
+                        />
                     </div>
 
                     <div>
@@ -253,8 +253,8 @@ const AddMaintenanceModal = ({ isOpen, onClose, onRequestAdded }) => {
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

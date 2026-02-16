@@ -8,6 +8,7 @@ from maintenance.models import MaintenanceRequest
 
 class PropertySerializer(serializers.ModelSerializer):
     current_tenant_name = serializers.SerializerMethodField()
+    current_tenant_rent_due_day = serializers.SerializerMethodField()
     is_occupied = serializers.SerializerMethodField()
     
     class Meta:
@@ -29,6 +30,10 @@ class PropertySerializer(serializers.ModelSerializer):
             lease_start__lte=today,
             lease_end__gte=today
         ).exists()
+
+    def get_current_tenant_rent_due_day(self, obj):
+        tenant = obj.get_current_tenant()
+        return tenant.rent_due_day if tenant else None
 
 
 class TenantBasicSerializer(serializers.ModelSerializer):

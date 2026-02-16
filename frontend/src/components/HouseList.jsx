@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Home, Users } from 'lucide-react';
+import { Plus, Search, Home, Users, Pencil, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import AddHouseModal from './AddHouseModal';
+import HouseModal from './HouseModal';
 import { formatCurrency } from '../utils/format';
 
 const HouseList = () => {
@@ -9,6 +9,7 @@ const HouseList = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedHouse, setSelectedHouse] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -27,9 +28,14 @@ const HouseList = () => {
         }
     };
 
-    const handleHouseAdded = (newHouse) => {
-        setHouses(prev => [...prev, newHouse]);
-        fetchHouses();
+    const handleHouseSaved = (savedHouse) => {
+        if (selectedHouse) {
+            setHouses(prev => prev.map(h => h.id === savedHouse.id ? savedHouse : h));
+        } else {
+            setHouses(prev => [...prev, savedHouse]);
+        }
+        setSelectedHouse(null);
+        // fetchHouses(); // Optional: Re-fetch if needed, but local update is faster
     };
 
     const filteredHouses = houses.filter(house =>
@@ -115,6 +121,32 @@ const HouseList = () => {
                             </span>
                         </div>
 
+                        <div style={{ position: 'absolute', top: 'var(--spacing-md)', right: 'var(--spacing-md)' }}>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedHouse(house);
+                                    setIsModalOpen(true);
+                                }}
+                                style={{
+                                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                    border: '1px solid var(--text-secondary-light)',
+                                    borderRadius: '50%',
+                                    width: '32px',
+                                    height: '32px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    color: 'var(--text-primary)',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                }}
+                                title="Edit House"
+                            >
+                                <Pencil size={14} />
+                            </button>
+                        </div>
+
                         <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>House {house.house_number}</h3>
                         <p style={{ margin: '0.5rem 0', color: 'var(--text-secondary-light)', fontSize: '0.875rem' }}>
                             {house.address}
@@ -132,9 +164,29 @@ const HouseList = () => {
                         </div>
 
                         {house.current_tenant_name && (
-                            <div style={{ marginTop: 'var(--spacing-md)', padding: '0.5rem', backgroundColor: 'var(--surface-dark)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <Users size={14} color="var(--primary-color)" />
-                                <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary-light)' }}>{house.current_tenant_name}</span>
+                            <div style={{ marginTop: 'var(--spacing-md)', padding: '0.5rem', backgroundColor: 'var(--surface-dark)', borderRadius: 'var(--radius-sm)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: house.latest_payment_status ? '0.25rem' : 0 }}>
+                                    <Users size={14} color="var(--primary-color)" />
+                                    <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary-light)' }}>{house.current_tenant_name}</span>
+                                </div>
+                                {house.latest_payment_status && (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem' }}>
+                                        {house.latest_payment_status.status === 'PAID' && <CheckCircle size={12} color="var(--success-color)" />}
+                                        {house.latest_payment_status.status === 'LATE' && <AlertCircle size={12} color="var(--warning-color)" />}
+                                        {house.latest_payment_status.status === 'FAILED' && <AlertCircle size={12} color="var(--danger-color)" />}
+                                        {house.latest_payment_status.status === 'PENDING' && <Clock size={12} color="var(--accent-color)" />}
+
+                                        <span style={{
+                                            color: house.latest_payment_status.status === 'PAID' ? 'var(--success-color)' :
+                                                house.latest_payment_status.status === 'LATE' ? 'var(--warning-color)' :
+                                                    house.latest_payment_status.status === 'FAILED' ? 'var(--danger-color)' :
+                                                        'var(--text-secondary-light)',
+                                            fontWeight: 600
+                                        }}>
+                                            {house.latest_payment_status.status}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -146,10 +198,14 @@ const HouseList = () => {
                 )}
             </div>
 
-            <AddHouseModal
+            <HouseModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onHouseAdded={handleHouseAdded}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setSelectedHouse(null);
+                }}
+                onHouseSaved={handleHouseSaved}
+                house={selectedHouse}
             />
         </div>
     );

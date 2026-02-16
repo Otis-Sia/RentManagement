@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Home, User, DollarSign, Wrench, Clock, CheckCircle, Plus } from 'lucide-react';
+import { ArrowLeft, Home, User, DollarSign, Wrench, Clock, CheckCircle, Plus, Pencil } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/format';
 import AddTenantModal from './AddTenantModal';
+import HouseModal from './HouseModal';
 
 const HouseDetail = () => {
     const { id } = useParams();
@@ -10,6 +11,7 @@ const HouseDetail = () => {
     const [house, setHouse] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isAddTenantModalOpen, setIsAddTenantModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     useEffect(() => {
         fetchHouseDetail();
@@ -29,6 +31,10 @@ const HouseDetail = () => {
 
     const handleTenantAdded = () => {
         fetchHouseDetail(); // Refresh data to show new tenant
+    };
+
+    const handleHouseUpdated = (updatedHouse) => {
+        setHouse(prev => ({ ...prev, ...updatedHouse }));
     };
 
     if (loading) return <div>Loading house details...</div>;
@@ -59,10 +65,31 @@ const HouseDetail = () => {
             <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 'var(--spacing-md)' }}>
                     <div>
-                        <h1 style={{ fontSize: '2rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <Home size={32} />
-                            House {house.house_number}
-                        </h1>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <h1 style={{ fontSize: '2rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <Home size={32} />
+                                House {house.house_number}
+                            </h1>
+                            <button
+                                onClick={() => setIsEditModalOpen(true)}
+                                style={{
+                                    backgroundColor: 'transparent',
+                                    border: '1px solid var(--text-secondary-light)',
+                                    borderRadius: '50%',
+                                    width: '32px',
+                                    height: '32px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    color: 'var(--text-secondary-light)',
+                                    transition: 'all 0.2s'
+                                }}
+                                title="Edit House Details"
+                            >
+                                <Pencil size={16} />
+                            </button>
+                        </div>
                         <p style={{ color: 'var(--text-secondary-light)', marginTop: '0.5rem', fontSize: '1rem' }}>
                             {house.address}
                         </p>
@@ -307,6 +334,13 @@ const HouseDetail = () => {
                 onClose={() => setIsAddTenantModalOpen(false)}
                 onTenantAdded={handleTenantAdded}
                 preselectedPropertyId={id}
+            />
+
+            <HouseModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                onHouseSaved={handleHouseUpdated}
+                house={house}
             />
         </div>
     );

@@ -2,7 +2,7 @@ from django.db import models
 
 
 class Property(models.Model):
-    house_number = models.CharField(max_length=50, unique=True)
+    house_number = models.CharField(max_length=50)
     address = models.CharField(max_length=500)
     bedrooms = models.IntegerField(default=1)
     bathrooms = models.IntegerField(default=1)
@@ -15,6 +15,7 @@ class Property(models.Model):
     class Meta:
         verbose_name_plural = "Properties"
         ordering = ['house_number']
+        unique_together = ['house_number', 'address']
 
     def __str__(self):
         return f"House {self.house_number}"

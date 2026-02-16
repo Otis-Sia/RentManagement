@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Phone, Mail, FileText, Home } from 'lucide-react';
+import { Plus, Search, Phone, Mail, FileText, Home, Calendar } from 'lucide-react';
 import AddTenantModal from './AddTenantModal';
 import { formatCurrency } from '../utils/format';
 
@@ -102,6 +102,9 @@ const TenantList = () => {
                                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Phone size={14} /> {tenant.phone}</span>
                                     {tenant.house_number && (
                                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Home size={14} /> {tenant.house_number}</span>
+                                    )}
+                                    {tenant.rent_due_day && (
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Calendar size={14} /> Due day: {tenant.rent_due_day}</span>
                                     )}
                                 </div>
                             </div>

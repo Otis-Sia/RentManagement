@@ -10,9 +10,10 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
         date_due: '',
         date_paid: '',
         payment_type: 'RENT',
-        status: 'PENDING',
+        // status is removed from initial state as it's calculated
         transaction_id: ''
     });
+    const [calculatedStatus, setCalculatedStatus] = useState('PENDING');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -33,8 +34,6 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
             console.error('Error fetching properties:', err);
         }
     };
-
-    if (!isOpen) return null;
 
     const handleHouseChange = (e) => {
         const houseId = parseInt(e.target.value);
@@ -65,6 +64,36 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
         }));
     };
 
+    // Effect to calculate status for preview
+    useEffect(() => {
+        if (!formData.date_due) {
+            setCalculatedStatus('PENDING');
+            return;
+        }
+
+        if (!formData.date_paid) {
+            setCalculatedStatus('PENDING');
+            return;
+        }
+
+        const due = new Date(formData.date_due);
+        const paid = new Date(formData.date_paid);
+
+        // Calculate difference in days
+        const diffTime = paid - due;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays <= 0) {
+            setCalculatedStatus('PAID');
+        } else if (diffDays > 30) {
+            setCalculatedStatus('FAILED');
+        } else {
+            setCalculatedStatus('LATE');
+        }
+    }, [formData.date_due, formData.date_paid]);
+
+    if (!isOpen) return null;
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -83,7 +112,7 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                 date_due: formData.date_due,
                 date_paid: formData.date_paid || null,
                 payment_type: formData.payment_type,
-                status: formData.status,
+                // status is handled by backend
                 transaction_id: formData.transaction_id
             };
 
@@ -111,7 +140,6 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                 date_due: '',
                 date_paid: '',
                 payment_type: 'RENT',
-                status: 'PENDING',
                 transaction_id: ''
             });
         } catch (err) {
@@ -201,19 +229,26 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                             </select>
                         </div>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Status</label>
-                            <select
-                                name="status"
-                                value={formData.status}
-                                onChange={handleChange}
-                                required
-                                style={inputStyle}
-                            >
-                                <option value="PENDING">Pending</option>
-                                <option value="PAID">Paid</option>
-                                <option value="LATE">Late</option>
-                                <option value="FAILED">Failed</option>
-                            </select>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Preview Status</label>
+                            <div style={{
+                                padding: '0.75rem',
+                                borderRadius: 'var(--radius-md)',
+                                backgroundColor: 'var(--background-light)',
+                                border: '1px solid var(--text-secondary-light)',
+                                color:
+                                    calculatedStatus === 'PAID' ? 'var(--success-color)' :
+                                        calculatedStatus === 'LATE' ? 'var(--warning-color)' :
+                                            calculatedStatus === 'FAILED' ? 'var(--danger-color)' :
+                                                'var(--text-secondary-light)',
+                                fontWeight: 600
+                            }}>
+                                {calculatedStatus}
+                                {calculatedStatus === 'FAILED' && (
+                                    <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--danger-color)', marginTop: '0.25rem' }}>
+                                        ⚠️ Payment is over 30 days late!
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
 
@@ -274,8 +309,8 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

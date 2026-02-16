@@ -12,6 +12,7 @@ const AddTenantModal = ({ isOpen, onClose, onTenantAdded, preselectedPropertyId 
         lease_end: '',
         rent_amount: '',
         deposit: '',
+        rent_due_day: 1,
         is_active: true
     });
     const [loading, setLoading] = useState(false);
@@ -63,7 +64,8 @@ const AddTenantModal = ({ isOpen, onClose, onTenantAdded, preselectedPropertyId 
                 },
                 body: JSON.stringify({
                     ...formData,
-                    property: formData.property ? parseInt(formData.property) : null
+                    property: formData.property ? parseInt(formData.property) : null,
+                    rent_due_day: parseInt(formData.rent_due_day)
                 }),
             });
 
@@ -85,6 +87,7 @@ const AddTenantModal = ({ isOpen, onClose, onTenantAdded, preselectedPropertyId 
                 lease_end: '',
                 rent_amount: '',
                 deposit: '',
+                rent_due_day: 1,
                 is_active: true
             });
         } catch (err) {
@@ -248,6 +251,24 @@ const AddTenantModal = ({ isOpen, onClose, onTenantAdded, preselectedPropertyId 
                                 style={inputStyle}
                             />
                         </div>
+                    </div>
+
+                    <div style={{ marginBottom: '1rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Rent Due Day</label>
+                        <input
+                            type="number"
+                            name="rent_due_day"
+                            value={formData.rent_due_day}
+                            onChange={handleChange}
+                            min="1"
+                            max="31"
+                            required
+                            style={inputStyle}
+                            placeholder="Day of month (1-31)"
+                        />
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary-light)' }}>
+                            Day of the month when rent is expected
+                        </span>
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>

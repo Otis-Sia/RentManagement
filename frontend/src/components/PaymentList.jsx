@@ -34,8 +34,8 @@ const PaymentList = () => {
         switch (status) {
             case 'PAID': return 'var(--success-color)';
             case 'PENDING': return 'var(--accent-color)';
-            case 'LATE': return 'var(--danger-color)';
-            case 'FAILED': return 'var(--text-secondary-light)';
+            case 'LATE': return 'var(--warning-color)';
+            case 'FAILED': return 'var(--danger-color)';
             default: return 'var(--text-secondary-light)';
         }
     };
@@ -43,8 +43,10 @@ const PaymentList = () => {
     const getStatusIcon = (status) => {
         switch (status) {
             case 'PAID': return CheckCircle;
+            case 'PAID': return CheckCircle;
             case 'PENDING': return Clock;
             case 'LATE': return AlertCircle;
+            case 'FAILED': return AlertCircle;
             default: return AlertCircle;
         }
     };
@@ -58,8 +60,29 @@ const PaymentList = () => {
 
     if (loading) return <div>Loading payments...</div>;
 
+    const failedPayments = payments.filter(p => p.status === 'FAILED');
+
     return (
         <div className="container">
+            {failedPayments.length > 0 && (
+                <div style={{
+                    backgroundColor: 'var(--danger-color)',
+                    color: 'white',
+                    padding: '1rem',
+                    borderRadius: 'var(--radius-md)',
+                    marginBottom: 'var(--spacing-lg)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}>
+                    <AlertCircle size={24} />
+                    <div>
+                        <strong>Action Required:</strong> {failedPayments.length} payment(s) have failed (over 30 days late).
+                    </div>
+                </div>
+            )}
+
             <header style={{
                 display: 'flex',
                 justifyContent: 'space-between',

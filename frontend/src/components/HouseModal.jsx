@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 
-const AddHouseModal = ({ isOpen, onClose, onHouseAdded }) => {
+const HouseModal = ({ isOpen, onClose, onHouseSaved, house = null }) => {
     const [formData, setFormData] = useState({
         house_number: '',
         address: '',
@@ -12,6 +12,29 @@ const AddHouseModal = ({ isOpen, onClose, onHouseAdded }) => {
     });
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
+
+    useEffect(() => {
+        if (house) {
+            setFormData({
+                house_number: house.house_number,
+                address: house.address,
+                bedrooms: house.bedrooms,
+                bathrooms: house.bathrooms,
+                square_feet: house.square_feet || '',
+                monthly_rent: house.monthly_rent
+            });
+        } else {
+            setFormData({
+                house_number: '',
+                address: '',
+                bedrooms: 1,
+                bathrooms: 1,
+                square_feet: '',
+                monthly_rent: ''
+            });
+        }
+        setErrors({});
+    }, [house, isOpen]);
 
     const inputStyle = {
         width: '100%',
@@ -36,7 +59,7 @@ const AddHouseModal = ({ isOpen, onClose, onHouseAdded }) => {
 
     const validate = () => {
         const newErrors = {};
-        if (!formData.house_number.trim()) newErrors.house_number = 'House number is required';
+        if (!formData.house_number.toString().trim()) newErrors.house_number = 'House number is required';
         if (!formData.address.trim()) newErrors.address = 'Address is required';
         if (!formData.monthly_rent || parseFloat(formData.monthly_rent) <= 0) {
             newErrors.monthly_rent = 'Valid monthly rent is required';
@@ -54,8 +77,11 @@ const AddHouseModal = ({ isOpen, onClose, onHouseAdded }) => {
 
         setSubmitting(true);
         try {
-            const response = await fetch('/api/houses/', {
-                method: 'POST',
+            const url = house ? `/api/houses/${house.id}/` : '/api/houses/';
+            const method = house ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -69,25 +95,16 @@ const AddHouseModal = ({ isOpen, onClose, onHouseAdded }) => {
             });
 
             if (response.ok) {
-                const newHouse = await response.json();
-                onHouseAdded(newHouse);
-                setFormData({
-                    house_number: '',
-                    address: '',
-                    bedrooms: 1,
-                    bathrooms: 1,
-                    square_feet: '',
-                    monthly_rent: ''
-                });
-                setErrors({});
+                const savedHouse = await response.json();
+                onHouseSaved(savedHouse);
                 onClose();
             } else {
                 const errorData = await response.json();
                 setErrors(errorData);
             }
         } catch (error) {
-            console.error('Error adding house:', error);
-            setErrors({ general: 'Failed to add house. Please try again.' });
+            console.error('Error saving house:', error);
+            setErrors({ general: 'Failed to save house. Please try again.' });
         } finally {
             setSubmitting(false);
         }
@@ -119,7 +136,9 @@ const AddHouseModal = ({ isOpen, onClose, onHouseAdded }) => {
                 onClick={(e) => e.stopPropagation()}
             >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)' }}>
-                    <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>Add New House</h2>
+                    <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>
+                        {house ? 'Edit House' : 'Add New House'}
+                    </h2>
                     <button
                         onClick={onClose}
                         style={{
@@ -264,7 +283,7 @@ const AddHouseModal = ({ isOpen, onClose, onHouseAdded }) => {
                             disabled={submitting}
                             className="btn btn-primary"
                         >
-                            {submitting ? 'Adding...' : 'Add House'}
+                            {submitting ? 'Saving...' : (house ? 'Update House' : 'Add House')}
                         </button>
                     </div>
                 </form>
@@ -273,4 +292,4 @@ const AddHouseModal = ({ isOpen, onClose, onHouseAdded }) => {
     );
 };
 
-export default AddHouseModal;
+export default HouseModal;

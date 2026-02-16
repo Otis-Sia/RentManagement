@@ -1,0 +1,108 @@
+:root {
+  /* Premium Color Palette */
+  --primary-color: #2563eb;
+  /* Royal Blue */
+  --primary-hover: #1d4ed8;
+  --secondary-color: #64748b;
+  /* Slate */
+  --accent-color: #f59e0b;
+  /* Amber */
+  --success-color: #10b981;
+  /* Emerald */
+  --danger-color: #ef4444;
+  /* Red */
+  --background-dark: #0f172a;
+  /* Slate 900 */
+  --background-light: #f8fafc;
+  /* Slate 50 */
+  --surface-dark: #1e293b;
+  /* Slate 800 */
+  --surface-light: #ffffff;
+  --text-primary-dark: #f1f5f9;
+  /* Slate 100 */
+  --text-secondary-dark: #94a3b8;
+  /* Slate 400 */
+  --text-primary-light: #1e293b;
+  /* Slate 800 */
+  --text-secondary-light: #64748b;
+  /* Slate 500 */
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+
+  /* Border Radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background-color: var(--background-light);
+  color: var(--text-primary-light);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Dark Mode Support (can be toggled via class or system pref) */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: var(--background-dark);
+    color: var(--text-primary-dark);
+  }
+}
+
+/* Utilities */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--spacing-md);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.card {
+  background-color: var(--surface-light);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-md);
+}
+
+@media (prefers-color-scheme: dark) {
+  .card {
+    background-color: var(--surface-dark);
+    box-shadow: none;
+    /* Often cleaner in dark mode */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}

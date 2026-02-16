@@ -43,7 +43,6 @@ const PaymentList = () => {
     const getStatusIcon = (status) => {
         switch (status) {
             case 'PAID': return CheckCircle;
-            case 'PAID': return CheckCircle;
             case 'PENDING': return Clock;
             case 'LATE': return AlertCircle;
             case 'FAILED': return AlertCircle;
@@ -51,12 +50,18 @@ const PaymentList = () => {
         }
     };
 
-    const filteredPayments = payments.filter(payment =>
-        payment.payment_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        payment.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (payment.tenant_name && payment.tenant_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (payment.house_number && payment.house_number.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    const [statusFilter, setStatusFilter] = useState('ALL');
+
+    const filteredPayments = payments.filter(payment => {
+        const matchesSearch = payment.payment_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            payment.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (payment.tenant_name && payment.tenant_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (payment.house_number && payment.house_number.toLowerCase().includes(searchTerm.toLowerCase()));
+
+        const matchesStatus = statusFilter === 'ALL' || payment.status === statusFilter;
+
+        return matchesSearch && matchesStatus;
+    });
 
     if (loading) return <div>Loading payments...</div>;
 
@@ -99,8 +104,8 @@ const PaymentList = () => {
                 </button>
             </header>
 
-            <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
-                <div style={{ position: 'relative' }}>
+            <div className="card" style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-md)' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
                     <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary-light)' }} />
                     <input
                         type="text"
@@ -118,6 +123,25 @@ const PaymentList = () => {
                         }}
                     />
                 </div>
+                <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    style={{
+                        padding: '0.75rem 1rem',
+                        borderRadius: 'var(--radius-md)',
+                        border: '1px solid var(--text-secondary-light)',
+                        backgroundColor: 'transparent',
+                        color: 'inherit',
+                        fontSize: '1rem',
+                        minWidth: '150px'
+                    }}
+                >
+                    <option value="ALL">All Status</option>
+                    <option value="PAID">Paid</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="LATE">Late</option>
+                    <option value="FAILED">Failed</option>
+                </select>
             </div>
 
             <div style={{ display: 'grid', gap: 'var(--spacing-md)' }}>

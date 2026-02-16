@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Home, CreditCard, Wrench, FileText } from 'lucide-react';
+import { LayoutDashboard, Home, CreditCard, Wrench, FileText, Users } from 'lucide-react';
 import './index.css';
 
 const Layout = () => {
@@ -9,6 +9,7 @@ const Layout = () => {
     const navItems = [
         { path: '/', label: 'Dashboard', icon: LayoutDashboard },
         { path: '/houses', label: 'Houses', icon: Home },
+        { path: '/tenants', label: 'Tenants', icon: Users },
         { path: '/payments', label: 'Payments', icon: CreditCard },
         { path: '/maintenance', label: 'Maintenance', icon: Wrench },
         { path: '/reports', label: 'Reports', icon: FileText },

@@ -38,10 +38,17 @@ const HouseList = () => {
         // fetchHouses(); // Optional: Re-fetch if needed, but local update is faster
     };
 
-    const filteredHouses = houses.filter(house =>
-        house.house_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        house.address.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const [statusFilter, setStatusFilter] = useState('ALL');
+
+    const filteredHouses = houses.filter(house => {
+        const matchesSearch = house.house_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            house.address.toLowerCase().includes(searchTerm.toLowerCase());
+
+        const matchesStatus = statusFilter === 'ALL' ||
+            (statusFilter === 'OCCUPIED' ? house.is_occupied : !house.is_occupied);
+
+        return matchesSearch && matchesStatus;
+    });
 
     if (loading) return <div>Loading houses...</div>;
 
@@ -63,8 +70,8 @@ const HouseList = () => {
                 </button>
             </header>
 
-            <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
-                <div style={{ position: 'relative' }}>
+            <div className="card" style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-md)' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
                     <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary-light)' }} />
                     <input
                         type="text"
@@ -82,6 +89,23 @@ const HouseList = () => {
                         }}
                     />
                 </div>
+                <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    style={{
+                        padding: '0.75rem 1rem',
+                        borderRadius: 'var(--radius-md)',
+                        border: '1px solid var(--text-secondary-light)',
+                        backgroundColor: 'transparent',
+                        color: 'inherit',
+                        fontSize: '1rem',
+                        minWidth: '150px'
+                    }}
+                >
+                    <option value="ALL">All Status</option>
+                    <option value="OCCUPIED">Occupied</option>
+                    <option value="VACANT">Vacant</option>
+                </select>
             </div>
 
             <div style={{ display: 'grid', gap: 'var(--spacing-md)', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>

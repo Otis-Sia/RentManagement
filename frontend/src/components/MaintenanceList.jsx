@@ -50,12 +50,20 @@ const MaintenanceList = () => {
         }
     };
 
-    const filteredRequests = requests.filter(req =>
-        req.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        req.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (req.tenant_name && req.tenant_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (req.house_number && req.house_number.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    const [statusFilter, setStatusFilter] = useState('ALL');
+    const [priorityFilter, setPriorityFilter] = useState('ALL');
+
+    const filteredRequests = requests.filter(req => {
+        const matchesSearch = req.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            req.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (req.tenant_name && req.tenant_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (req.house_number && req.house_number.toLowerCase().includes(searchTerm.toLowerCase()));
+
+        const matchesStatus = statusFilter === 'ALL' || req.status === statusFilter;
+        const matchesPriority = priorityFilter === 'ALL' || req.priority === priorityFilter;
+
+        return matchesSearch && matchesStatus && matchesPriority;
+    });
 
     if (loading) return <div>Loading maintenance requests...</div>;
 
@@ -77,8 +85,8 @@ const MaintenanceList = () => {
                 </button>
             </header>
 
-            <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
-                <div style={{ position: 'relative' }}>
+            <div className="card" style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-md)' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
                     <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary-light)' }} />
                     <input
                         type="text"
@@ -96,6 +104,44 @@ const MaintenanceList = () => {
                         }}
                     />
                 </div>
+                <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    style={{
+                        padding: '0.75rem 1rem',
+                        borderRadius: 'var(--radius-md)',
+                        border: '1px solid var(--text-secondary-light)',
+                        backgroundColor: 'transparent',
+                        color: 'inherit',
+                        fontSize: '1rem',
+                        minWidth: '150px'
+                    }}
+                >
+                    <option value="ALL">All Status</option>
+                    <option value="OPEN">Open</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="COMPLETED">Completed</option>
+                    <option value="CANCELLED">Cancelled</option>
+                </select>
+                <select
+                    value={priorityFilter}
+                    onChange={(e) => setPriorityFilter(e.target.value)}
+                    style={{
+                        padding: '0.75rem 1rem',
+                        borderRadius: 'var(--radius-md)',
+                        border: '1px solid var(--text-secondary-light)',
+                        backgroundColor: 'transparent',
+                        color: 'inherit',
+                        fontSize: '1rem',
+                        minWidth: '150px'
+                    }}
+                >
+                    <option value="ALL">All Priority</option>
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HIGH">High</option>
+                    <option value="EMERGENCY">Emergency</option>
+                </select>
             </div>
 
             <div style={{ display: 'grid', gap: 'var(--spacing-md)' }}>

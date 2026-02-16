@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Phone, Mail, FileText, Home, Calendar } from 'lucide-react';
 import AddTenantModal from './AddTenantModal';
 import { formatCurrency } from '../utils/format';
@@ -7,7 +8,9 @@ const TenantList = () => {
     const [tenants, setTenants] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('ALL');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchTenants();
@@ -31,10 +34,15 @@ const TenantList = () => {
         fetchTenants();
     };
 
-    const filteredTenants = tenants.filter(tenant =>
-        tenant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tenant.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredTenants = tenants.filter(tenant => {
+        const matchesSearch = tenant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            tenant.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+        const matchesStatus = statusFilter === 'ALL' ||
+            (statusFilter === 'ACTIVE' ? tenant.is_active : !tenant.is_active);
+
+        return matchesSearch && matchesStatus;
+    });
 
     if (loading) return <div>Loading tenants...</div>;
 
@@ -56,8 +64,8 @@ const TenantList = () => {
                 </button>
             </header>
 
-            <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
-                <div style={{ position: 'relative' }}>
+            <div className="card" style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-md)' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
                     <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary-light)' }} />
                     <input
                         type="text"
@@ -75,11 +83,41 @@ const TenantList = () => {
                         }}
                     />
                 </div>
+                <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    style={{
+                        padding: '0.75rem 1rem',
+                        borderRadius: 'var(--radius-md)',
+                        border: '1px solid var(--text-secondary-light)',
+                        backgroundColor: 'transparent',
+                        color: 'inherit',
+                        fontSize: '1rem',
+                        minWidth: '150px'
+                    }}
+                >
+                    <option value="ALL">All Status</option>
+                    <option value="ACTIVE">Active Lease</option>
+                    <option value="INACTIVE">Inactive</option>
+                </select>
             </div>
 
             <div style={{ display: 'grid', gap: 'var(--spacing-md)' }}>
                 {filteredTenants.map(tenant => (
-                    <div key={tenant.id} className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div
+                        key={tenant.id}
+                        className="card"
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                        }}
+                        onClick={() => navigate(`/tenants/${tenant.id}`)}
+                        onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                        onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                    >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
                             <div style={{
                                 width: '48px',

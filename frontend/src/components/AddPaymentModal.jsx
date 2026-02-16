@@ -37,22 +37,43 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
     };
 
     const handleHouseChange = (e) => {
-        const houseId = parseInt(e.target.value);
+        // e.target.value might be the ID directly if coming from SearchableSelect
+        const houseId = parseInt(e.target.value || e.target.name === 'house_id' ? e.target.value : 0);
         const house = properties.find(p => p.id === houseId);
 
         if (house && house.current_tenant_id) {
+            let dueDate = '';
+
+            // Auto-calculate due date based on lease agreement
+            if (house.current_tenant_rent_due_day) {
+                const now = new Date();
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+
+                // Create date for current month with the agreed due day
+                const agreedDate = new Date(currentYear, currentMonth, house.current_tenant_rent_due_day);
+
+                // Format as YYYY-MM-DD
+                // Adjust for timezone offset to ensure correct day is picked
+                const offset = agreedDate.getTimezoneOffset();
+                const adjustedDate = new Date(agreedDate.getTime() - (offset * 60 * 1000));
+                dueDate = adjustedDate.toISOString().split('T')[0];
+            }
+
             setFormData(prev => ({
                 ...prev,
                 house_id: houseId,
                 tenant: house.current_tenant_id,
                 // Optional: Auto-fill rent amount if not set
-                amount: prev.amount || house.monthly_rent || ''
+                amount: prev.amount || house.monthly_rent || '',
+                date_due: dueDate
             }));
         } else {
             setFormData(prev => ({
                 ...prev,
                 house_id: houseId,
-                tenant: ''
+                tenant: '',
+                date_due: ''
             }));
         }
     };

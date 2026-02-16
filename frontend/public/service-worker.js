@@ -7,17 +7,37 @@ const STATIC_ASSETS = [
     '/index.html',
     '/manifest.json',
     '/icons/icon-192.png',
-    '/icons/icon-512.png'
+    '/icons/icon-512.png',
 ];
 
-// Install event - cache static assets
+// Routes to pre-cache (for SPA)
+const APP_ROUTES = [
+    '/houses',
+    '/tenants',
+    '/payments',
+    '/maintenance',
+    '/reports'
+];
+
+// Install event - cache static assets and routes
 self.addEventListener('install', (event) => {
-    console.log('[Service Worker] Installing...');
+    console.log('[Service Worker] Installing - downloading full app...');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
                 console.log('[Service Worker] Caching static assets');
-                return cache.addAll(STATIC_ASSETS);
+                // Cache static assets
+                const assetCachePromise = cache.addAll(STATIC_ASSETS);
+
+                // Cache app routes by fetching them (which serves index.html in SPA)
+                const routeCachePromise = Promise.all(
+                    APP_ROUTES.map(route => {
+                        const request = new Request(route, { mode: 'no-cors' });
+                        return fetch(request).then(response => cache.put(request, response));
+                    })
+                );
+
+                return Promise.all([assetCachePromise, routeCachePromise]);
             })
             .then(() => self.skipWaiting())
     );
@@ -66,17 +86,30 @@ self.addEventListener('fetch', (event) => {
 
     // Network-first strategy for API requests
     if (url.pathname.startsWith('/api/')) {
-        event.respondWith(
-            fetch(request)
-                .then((response) => {
-                    // Don't cache API responses
-                    return response;
-                })
-                .catch((error) => {
-                    console.error('[Service Worker] API fetch failed:', error);
-                    throw error;
-                })
-        );
+        // Only cache GET requests
+        if (request.method === 'GET') {
+            event.respondWith(
+                fetch(request)
+                    .then((response) => {
+                        // If valid response, clone and cache
+                        if (response && response.status === 200) {
+                            const responseToCache = response.clone();
+                            caches.open('rent-management-api-v1').then((cache) => {
+                                cache.put(request, responseToCache);
+                            });
+                        }
+                        return response;
+                    })
+                    .catch(() => {
+                        // If network fails, try cache
+                        return caches.match(request);
+                    })
+            );
+            return;
+        }
+
+        // For non-GET requests, just fetch
+        event.respondWith(fetch(request));
         return;
     }
 
@@ -158,9 +191,42 @@ function shouldCache(request) {
     );
 }
 
-// Listen for skip waiting message
+// Listen for messages from client
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
+    }
+
+    // Feature: Download entire website data
+    if (event.data && event.data.type === 'CACHE_ALL_DATA') {
+        console.log('[Service Worker] Caching all API data...');
+
+        const apiEndpoints = [
+            '/api/houses/',
+            '/api/tenants/',
+            '/api/payments/',
+            '/api/maintenance/',
+            '/api/reports/'
+        ];
+
+        event.waitUntil(
+            caches.open('rent-management-api-v1').then(cache => {
+                return Promise.all(
+                    apiEndpoints.map(url => {
+                        return fetch(url).then(response => {
+                            if (response.status === 200) {
+                                return cache.put(url, response);
+                            }
+                        }).catch(err => console.error('Failed to cache', url, err));
+                    })
+                ).then(() => {
+                    console.log('[Service Worker] All data cached successfully');
+                    // Notify clients
+                    self.clients.matchAll().then(clients => {
+                        clients.forEach(client => client.postMessage({ type: 'DATA_CACHED' }));
+                    });
+                });
+            })
+        );
     }
 });

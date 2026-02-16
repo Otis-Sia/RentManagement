@@ -1,4 +1,4 @@
-// PWA utilities for service worker management and auto-updates
+import { getQueue, clearQueue } from './utils/api';
 
 let registration = null;
 let isOnline = navigator.onLine;
@@ -61,6 +61,47 @@ function handleSWMessage(event) {
         console.log('[PWA] Service worker updated:', event.data.message);
         // Automatically reload to use new version
         window.location.reload();
+    }
+}
+
+/**
+ * Sync offline changes when back online
+ */
+async function syncOfflineChanges() {
+    const queue = getQueue();
+    if (queue.length === 0) return;
+
+    console.log(`[PWA] Syncing ${queue.length} offline changes...`);
+    showConnectionNotification(`Syncing ${queue.length} offline changes...`, 'info');
+
+    let successCount = 0;
+    let failedCount = 0;
+
+    for (const item of queue) {
+        try {
+            console.log(`[Sync] Processing ${item.method} ${item.url}`);
+
+            // Replay the request
+            await fetch(item.url, {
+                method: item.method,
+                headers: item.headers,
+                body: item.data ? JSON.stringify(item.data) : undefined
+            });
+
+            successCount++;
+        } catch (error) {
+            console.error(`[Sync] Failed to sync item ${item.url}:`, error);
+            failedCount++;
+        }
+    }
+
+    if (successCount > 0) {
+        clearQueue(); // Clear queue after successful sync
+        showConnectionNotification(`Synced ${successCount} changes successfully`, 'success');
+        // Refresh page to show updated data
+        setTimeout(() => window.location.reload(), 1500);
+    } else if (failedCount > 0) {
+        showConnectionNotification(`${failedCount} changes failed to sync`, 'warning');
     }
 }
 
@@ -142,6 +183,9 @@ export function setupNetworkListeners() {
         // Wait a moment for connection to stabilize
         await new Promise(resolve => setTimeout(resolve, 1000));
 
+        // Sync offline changes
+        await syncOfflineChanges();
+
         // Check for service worker updates
         if (registration) {
             try {
@@ -154,6 +198,15 @@ export function setupNetworkListeners() {
 
         // Show connection restored notification
         showConnectionNotification('Connection restored', 'success');
+
+        // Trigger full site download
+        if (registration && registration.active) {
+            registration.active.postMessage({ type: 'CACHE_ALL_DATA' });
+            showConnectionNotification('Downloading latest data...', 'info');
+        } else if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({ type: 'CACHE_ALL_DATA' });
+            showConnectionNotification('Downloading latest data...', 'info');
+        }
     });
 
     // Listen for offline event
@@ -171,7 +224,8 @@ function showConnectionNotification(message, type) {
     const banner = document.createElement('div');
     banner.className = 'connection-notification';
 
-    const bgColor = type === 'success' ? '#10b981' : '#f59e0b';
+    const bgColor = type === 'success' ? '#10b981' :
+        type === 'info' ? '#3b82f6' : '#f59e0b';
 
     banner.style.cssText = `
     position: fixed;
@@ -250,7 +304,13 @@ export async function initPWA() {
 
     // Log PWA status
     console.log('[PWA] Running as PWA:', isPWA());
-    console.log('[PWA] Network status:', getNetworkStatus());
+
+    // Feature: Trigger full site download
+    if (registration && registration.active) {
+        registration.active.postMessage({ type: 'CACHE_ALL_DATA' });
+    } else if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'CACHE_ALL_DATA' });
+    }
 
     return {
         registration,

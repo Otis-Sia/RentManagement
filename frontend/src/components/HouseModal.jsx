@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { api } from '../utils/api';
 
 const HouseModal = ({ isOpen, onClose, onHouseSaved, house = null }) => {
     const [formData, setFormData] = useState({
@@ -78,33 +79,40 @@ const HouseModal = ({ isOpen, onClose, onHouseSaved, house = null }) => {
         setSubmitting(true);
         try {
             const url = house ? `/api/houses/${house.id}/` : '/api/houses/';
-            const method = house ? 'PUT' : 'POST';
+            let response;
 
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
+            if (house) {
+                response = await api.put(url, {
                     ...formData,
                     square_feet: formData.square_feet ? parseInt(formData.square_feet) : null,
                     bedrooms: parseInt(formData.bedrooms),
                     bathrooms: parseInt(formData.bathrooms),
                     monthly_rent: parseFloat(formData.monthly_rent)
-                }),
-            });
+                });
+            } else {
+                response = await api.post(url, {
+                    ...formData,
+                    square_feet: formData.square_feet ? parseInt(formData.square_feet) : null,
+                    bedrooms: parseInt(formData.bedrooms),
+                    bathrooms: parseInt(formData.bathrooms),
+                    monthly_rent: parseFloat(formData.monthly_rent)
+                });
+            }
 
-            if (response.ok) {
-                const savedHouse = await response.json();
-                onHouseSaved(savedHouse);
+            if (response.offline) {
+                // Handle offline success
+                onHouseSaved(response); // Mock response uses payload
+                onClose();
+                alert('House saved to offline queue. It will sync when you reconnect.');
+            } else if (response.id) {
+                onHouseSaved(response);
                 onClose();
             } else {
-                const errorData = await response.json();
-                setErrors(errorData);
+                setErrors(response);
             }
         } catch (error) {
             console.error('Error saving house:', error);
-            setErrors({ general: 'Failed to save house. Please try again.' });
+            setErrors({ general: 'Failed to save house. ' + (error.message || '') });
         } finally {
             setSubmitting(false);
         }

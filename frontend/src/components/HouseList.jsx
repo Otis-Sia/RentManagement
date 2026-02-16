@@ -3,6 +3,7 @@ import { Plus, Search, Home, Users, Pencil, AlertCircle, CheckCircle, Clock } fr
 import { useNavigate } from 'react-router-dom';
 import HouseModal from './HouseModal';
 import { formatCurrency } from '../utils/format';
+import { api } from '../utils/api';
 
 const HouseList = () => {
     const [houses, setHouses] = useState([]);
@@ -18,8 +19,8 @@ const HouseList = () => {
 
     const fetchHouses = async () => {
         try {
-            const response = await fetch('/api/houses/');
-            const data = await response.json();
+            // Use offline-aware API wrapper
+            const data = await api.get('/api/houses/');
             setHouses(data);
             setLoading(false);
         } catch (error) {
@@ -108,7 +109,8 @@ const HouseList = () => {
                             </span>
                         </div>
 
-                        <div style={{ position: 'absolute', top: 'var(--spacing-md)', right: 'var(--spacing-md)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>House {house.house_number}</h3>
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -121,8 +123,6 @@ const HouseList = () => {
                                 <Pencil size={18} />
                             </button>
                         </div>
-
-                        <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>House {house.house_number}</h3>
                         <p style={{ margin: '0.5rem 0', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
                             {house.address}
                         </p>

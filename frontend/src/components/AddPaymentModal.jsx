@@ -177,9 +177,9 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
         width: '100%',
         padding: '0.75rem',
         borderRadius: 'var(--radius-md)',
-        border: '1px solid var(--text-secondary-light)',
+        border: '1px solid var(--text-secondary)',
         backgroundColor: 'var(--background-light)',
-        color: 'var(--text-primary-light)' // Force dark text 
+        color: 'var(--text-primary)' // Force dark text 
     };
 
     return (
@@ -256,12 +256,12 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                                 padding: '0.75rem',
                                 borderRadius: 'var(--radius-md)',
                                 backgroundColor: 'var(--background-light)',
-                                border: '1px solid var(--text-secondary-light)',
+                                border: '1px solid var(--text-secondary)',
                                 color:
                                     calculatedStatus === 'PAID' ? 'var(--success-color)' :
                                         calculatedStatus === 'LATE' ? 'var(--warning-color)' :
                                             calculatedStatus === 'FAILED' ? 'var(--danger-color)' :
-                                                'var(--text-secondary-light)',
+                                                'var(--text-secondary)',
                                 fontWeight: 600
                             }}>
                                 {calculatedStatus}

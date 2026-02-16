@@ -41,7 +41,7 @@ const HouseModal = ({ isOpen, onClose, onHouseSaved, house = null }) => {
         padding: '0.75rem',
         borderRadius: 'var(--radius-md)',
         backgroundColor: 'var(--background-light)',
-        color: 'var(--text-primary-light)', // Force dark text
+        color: 'var(--text-primary)', // Force dark text
         fontSize: '1rem'
     };
 
@@ -126,7 +126,7 @@ const HouseModal = ({ isOpen, onClose, onHouseSaved, house = null }) => {
             zIndex: 1000
         }} onClick={onClose}>
             <div
-                className="card"
+                className="card modal-content"
                 style={{
                     maxWidth: '500px',
                     width: '90%',
@@ -146,7 +146,7 @@ const HouseModal = ({ isOpen, onClose, onHouseSaved, house = null }) => {
                             border: 'none',
                             cursor: 'pointer',
                             padding: '0.25rem',
-                            color: 'var(--text-secondary-light)'
+                            color: 'var(--text-secondary)'
                         }}
                     >
                         <X size={24} />
@@ -172,7 +172,7 @@ const HouseModal = ({ isOpen, onClose, onHouseSaved, house = null }) => {
                             placeholder="e.g., 101, A1, etc."
                             style={{
                                 ...inputStyle,
-                                border: `1px solid ${errors.house_number ? 'var(--danger-color)' : 'var(--text-secondary-light)'}`
+                                border: `1px solid ${errors.house_number ? 'var(--danger-color)' : 'var(--text-secondary)'}`
                             }}
                         />
                         {errors.house_number && <span style={{ color: 'var(--danger-color)', fontSize: '0.75rem' }}>{errors.house_number}</span>}
@@ -190,7 +190,7 @@ const HouseModal = ({ isOpen, onClose, onHouseSaved, house = null }) => {
                             placeholder="Full address of the property"
                             style={{
                                 ...inputStyle,
-                                border: `1px solid ${errors.address ? 'var(--danger-color)' : 'var(--text-secondary-light)'}`
+                                border: `1px solid ${errors.address ? 'var(--danger-color)' : 'var(--text-secondary)'}`
                             }}
                         />
                         {errors.address && <span style={{ color: 'var(--danger-color)', fontSize: '0.75rem' }}>{errors.address}</span>}
@@ -209,7 +209,7 @@ const HouseModal = ({ isOpen, onClose, onHouseSaved, house = null }) => {
                                 min="0"
                                 style={{
                                     ...inputStyle,
-                                    border: '1px solid var(--text-secondary-light)'
+                                    border: '1px solid var(--text-secondary)'
                                 }}
                             />
                         </div>
@@ -226,7 +226,7 @@ const HouseModal = ({ isOpen, onClose, onHouseSaved, house = null }) => {
                                 min="0"
                                 style={{
                                     ...inputStyle,
-                                    border: '1px solid var(--text-secondary-light)'
+                                    border: '1px solid var(--text-secondary)'
                                 }}
                             />
                         </div>
@@ -245,7 +245,7 @@ const HouseModal = ({ isOpen, onClose, onHouseSaved, house = null }) => {
                             min="0"
                             style={{
                                 ...inputStyle,
-                                border: '1px solid var(--text-secondary-light)'
+                                border: '1px solid var(--text-secondary)'
                             }}
                         />
                     </div>
@@ -264,7 +264,7 @@ const HouseModal = ({ isOpen, onClose, onHouseSaved, house = null }) => {
                             min="0"
                             style={{
                                 ...inputStyle,
-                                border: `1px solid ${errors.monthly_rent ? 'var(--danger-color)' : 'var(--text-secondary-light)'}`
+                                border: `1px solid ${errors.monthly_rent ? 'var(--danger-color)' : 'var(--text-secondary)'}`
                             }}
                         />
                         {errors.monthly_rent && <span style={{ color: 'var(--danger-color)', fontSize: '0.75rem' }}>{errors.monthly_rent}</span>}

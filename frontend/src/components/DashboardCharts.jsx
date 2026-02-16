@@ -54,7 +54,7 @@ const DashboardCharts = ({ data }) => {
                     borderRadius: 'var(--radius-md)',
                     boxShadow: 'var(--shadow-md)'
                 }}>
-                    <p style={{ margin: 0, fontWeight: 600, color: 'var(--text-primary-light)' }}>{label}</p>
+                    <p style={{ margin: 0, fontWeight: 600, color: 'var(--text-primary)' }}>{label}</p>
                     <p style={{ margin: '4px 0 0 0', color: COLORS.success }}>
                         {formatCurrency(payload[0].value)}
                     </p>
@@ -82,11 +82,11 @@ const DashboardCharts = ({ data }) => {
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                             <XAxis
                                 dataKey="month"
-                                stroke="var(--text-secondary-light)"
+                                stroke="var(--text-secondary)"
                                 style={{ fontSize: '0.875rem' }}
                             />
                             <YAxis
-                                stroke="var(--text-secondary-light)"
+                                stroke="var(--text-secondary)"
                                 style={{ fontSize: '0.875rem' }}
                                 tickFormatter={(value) => `${value / 1000}k`}
                             />
@@ -143,10 +143,10 @@ const DashboardCharts = ({ data }) => {
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                             <XAxis
                                 dataKey="name"
-                                stroke="var(--text-secondary-light)"
+                                stroke="var(--text-secondary)"
                                 style={{ fontSize: '0.75rem' }}
                             />
-                            <YAxis stroke="var(--text-secondary-light)" style={{ fontSize: '0.875rem' }} />
+                            <YAxis stroke="var(--text-secondary)" style={{ fontSize: '0.875rem' }} />
                             <Tooltip />
                             <Bar dataKey="count" radius={[8, 8, 0, 0]}>
                                 {maintenanceStatusData.map((entry, index) => (
@@ -174,7 +174,7 @@ const DashboardCharts = ({ data }) => {
                             }}>
                                 {data.occupancy.rate}%
                             </div>
-                            <p style={{ margin: 'var(--spacing-sm) 0 0 0', color: 'var(--text-secondary-light)' }}>
+                            <p style={{ margin: 'var(--spacing-sm) 0 0 0', color: 'var(--text-secondary)' }}>
                                 Occupancy Rate
                             </p>
                         </div>
@@ -196,7 +196,7 @@ const DashboardCharts = ({ data }) => {
                             display: 'flex',
                             justifyContent: 'space-between',
                             fontSize: '0.875rem',
-                            color: 'var(--text-secondary-light)'
+                            color: 'var(--text-secondary)'
                         }}>
                             <span>Occupied: {data.occupancy.occupied}</span>
                             <span>Total: {data.occupancy.total}</span>

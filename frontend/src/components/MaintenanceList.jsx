@@ -36,7 +36,7 @@ const MaintenanceList = () => {
             case 'EMERGENCY': return 'var(--danger-color)';
             case 'MEDIUM': return 'var(--accent-color)';
             case 'LOW': return 'var(--success-color)';
-            default: return 'var(--text-secondary-light)';
+            default: return 'var(--text-secondary)';
         }
     };
 
@@ -77,7 +77,7 @@ const MaintenanceList = () => {
             }}>
                 <div>
                     <h1 style={{ fontSize: '1.875rem', fontWeight: 700, margin: 0 }}>Maintenance</h1>
-                    <p style={{ color: 'var(--text-secondary-light)', marginTop: '0.5rem' }}>Track work orders and repairs</p>
+                    <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Track work orders and repairs</p>
                 </div>
                 <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
                     <Plus size={18} style={{ marginRight: '0.5rem' }} />
@@ -87,7 +87,7 @@ const MaintenanceList = () => {
 
             <div className="card" style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-md)' }}>
                 <div style={{ position: 'relative', flex: 1 }}>
-                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary-light)' }} />
+                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
                     <input
                         type="text"
                         placeholder="Search requests, houses, or tenants..."
@@ -97,7 +97,7 @@ const MaintenanceList = () => {
                             width: '100%',
                             padding: '0.75rem 1rem 0.75rem 3rem',
                             borderRadius: 'var(--radius-md)',
-                            border: '1px solid var(--text-secondary-light)',
+                            border: '1px solid var(--text-secondary)',
                             backgroundColor: 'transparent',
                             color: 'inherit',
                             fontSize: '1rem'
@@ -110,7 +110,7 @@ const MaintenanceList = () => {
                     style={{
                         padding: '0.75rem 1rem',
                         borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--text-secondary-light)',
+                        border: '1px solid var(--text-secondary)',
                         backgroundColor: 'transparent',
                         color: 'inherit',
                         fontSize: '1rem',
@@ -129,7 +129,7 @@ const MaintenanceList = () => {
                     style={{
                         padding: '0.75rem 1rem',
                         borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--text-secondary-light)',
+                        border: '1px solid var(--text-secondary)',
                         backgroundColor: 'transparent',
                         color: 'inherit',
                         fontSize: '1rem',
@@ -176,7 +176,7 @@ const MaintenanceList = () => {
                                     <div style={{ fontSize: '0.875rem', color: 'var(--text-primary)', marginBottom: '0.25rem', fontWeight: 500 }}>
                                         {req.tenant_name}
                                     </div>
-                                    <p style={{ margin: 0, color: 'var(--text-secondary-light)', fontSize: '0.875rem', maxWidth: '600px' }}>
+                                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.875rem', maxWidth: '600px' }}>
                                         {req.description}
                                     </p>
                                     <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
@@ -205,7 +205,7 @@ const MaintenanceList = () => {
                     );
                 })}
                 {filteredRequests.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary-light)' }}>
+                    <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
                         No maintenance requests found.
                     </div>
                 )}

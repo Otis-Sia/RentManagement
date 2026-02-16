@@ -72,56 +72,39 @@ const HouseDetail = () => {
                             </h1>
                             <button
                                 onClick={() => setIsEditModalOpen(true)}
-                                style={{
-                                    backgroundColor: 'transparent',
-                                    border: '1px solid var(--text-secondary-light)',
-                                    borderRadius: '50%',
-                                    width: '32px',
-                                    height: '32px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    cursor: 'pointer',
-                                    color: 'var(--text-secondary-light)',
-                                    transition: 'all 0.2s'
-                                }}
+                                className="house-edit-button"
                                 title="Edit House Details"
                             >
-                                <Pencil size={16} />
+                                <Pencil size={18} />
                             </button>
                         </div>
-                        <p style={{ color: 'var(--text-secondary-light)', marginTop: '0.5rem', fontSize: '1rem' }}>
+                        <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', fontSize: '1rem' }}>
                             {house.address}
                         </p>
                     </div>
-                    <span style={{
-                        padding: '0.5rem 1rem',
-                        borderRadius: 'var(--radius-md)',
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                        backgroundColor: house.is_occupied ? 'var(--success-color)' : 'var(--text-secondary-light)',
-                        color: 'white'
+                    <span className="house-status-badge" style={{
+                        backgroundColor: house.is_occupied ? 'var(--success-color)' : 'var(--text-secondary)'
                     }}>
                         {house.is_occupied ? 'Occupied' : 'Vacant'}
                     </span>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 'var(--spacing-lg)', marginTop: 'var(--spacing-lg)', paddingTop: 'var(--spacing-lg)', borderTop: '1px solid var(--text-secondary-light)' }}>
+                <div className="house-details-grid">
                     <div>
-                        <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary-light)' }}>Monthly Rent</p>
+                        <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Monthly Rent</p>
                         <p style={{ margin: '0.5rem 0 0', fontSize: '1.25rem', fontWeight: 600 }}>{formatCurrency(house.monthly_rent)}</p>
                     </div>
                     <div>
-                        <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary-light)' }}>Bedrooms</p>
+                        <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Bedrooms</p>
                         <p style={{ margin: '0.5rem 0 0', fontSize: '1.25rem', fontWeight: 600 }}>{house.bedrooms}</p>
                     </div>
                     <div>
-                        <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary-light)' }}>Bathrooms</p>
+                        <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Bathrooms</p>
                         <p style={{ margin: '0.5rem 0 0', fontSize: '1.25rem', fontWeight: 600 }}>{house.bathrooms}</p>
                     </div>
                     {house.square_feet && (
                         <div>
-                            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary-light)' }}>Square Feet</p>
+                            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Square Feet</p>
                             <p style={{ margin: '0.5rem 0 0', fontSize: '1.25rem', fontWeight: 600 }}>{house.square_feet}</p>
                         </div>
                     )}
@@ -137,19 +120,19 @@ const HouseDetail = () => {
                     </h2>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-md)' }}>
                         <div>
-                            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary-light)' }}>Name</p>
+                            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Name</p>
                             <p style={{ margin: '0.25rem 0 0', fontWeight: 600 }}>{house.current_tenant.name}</p>
                         </div>
                         <div>
-                            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary-light)' }}>Email</p>
+                            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Email</p>
                             <p style={{ margin: '0.25rem 0 0', fontWeight: 600 }}>{house.current_tenant.email}</p>
                         </div>
                         <div>
-                            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary-light)' }}>Phone</p>
+                            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Phone</p>
                             <p style={{ margin: '0.25rem 0 0', fontWeight: 600 }}>{house.current_tenant.phone}</p>
                         </div>
                         <div>
-                            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary-light)' }}>Lease Period</p>
+                            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Lease Period</p>
                             <p style={{ margin: '0.25rem 0 0', fontWeight: 600 }}>
                                 {formatDate(house.current_tenant.lease_start)} - {formatDate(house.current_tenant.lease_end)}
                             </p>
@@ -163,7 +146,7 @@ const HouseDetail = () => {
                             <User size={24} />
                             No Current Tenant
                         </h2>
-                        <p style={{ margin: 0, color: 'var(--text-secondary-light)' }}>This property is currently vacant.</p>
+                        <p style={{ margin: 0, color: 'var(--text-secondary)' }}>This property is currently vacant.</p>
                     </div>
                     <button className="btn btn-primary" onClick={() => setIsAddTenantModalOpen(true)}>
                         <Plus size={18} style={{ marginRight: '0.5rem' }} />
@@ -179,10 +162,10 @@ const HouseDetail = () => {
                     Payment History
                 </h2>
                 {house.payment_history && house.payment_history.length > 0 ? (
-                    <div style={{ overflowX: 'auto' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <div className="table-container">
+                        <table>
                             <thead>
-                                <tr style={{ borderBottom: '2px solid var(--text-secondary-light)' }}>
+                                <tr style={{ borderBottom: '2px solid var(--text-secondary)' }}>
                                     <th style={{ textAlign: 'left', padding: '0.75rem', fontSize: '0.875rem', fontWeight: 600 }}>Tenant</th>
                                     <th style={{ textAlign: 'left', padding: '0.75rem', fontSize: '0.875rem', fontWeight: 600 }}>Type</th>
                                     <th style={{ textAlign: 'left', padding: '0.75rem', fontSize: '0.875rem', fontWeight: 600 }}>Amount</th>
@@ -193,7 +176,7 @@ const HouseDetail = () => {
                             </thead>
                             <tbody>
                                 {house.payment_history.map((payment) => (
-                                    <tr key={payment.id} style={{ borderBottom: '1px solid var(--text-secondary-light)' }}>
+                                    <tr key={payment.id} style={{ borderBottom: '1px solid var(--text-secondary)' }}>
                                         <td style={{ padding: '0.75rem' }}>{payment.tenant_name}</td>
                                         <td style={{ padding: '0.75rem' }}>{payment.payment_type}</td>
                                         <td style={{ padding: '0.75rem', fontWeight: 600 }}>{formatCurrency(payment.amount)}</td>
@@ -217,7 +200,7 @@ const HouseDetail = () => {
                         </table>
                     </div>
                 ) : (
-                    <p style={{ color: 'var(--text-secondary-light)', textAlign: 'center', padding: '2rem' }}>No payment history</p>
+                    <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '2rem' }}>No payment history</p>
                 )}
             </div>
 
@@ -230,11 +213,11 @@ const HouseDetail = () => {
                 {house.maintenance_requests && house.maintenance_requests.length > 0 ? (
                     <div style={{ display: 'grid', gap: 'var(--spacing-md)' }}>
                         {house.maintenance_requests.map((request) => (
-                            <div key={request.id} style={{ padding: 'var(--spacing-md)', border: '1px solid var(--text-secondary-light)', borderRadius: 'var(--radius-md)' }}>
+                            <div key={request.id} style={{ padding: 'var(--spacing-md)', border: '1px solid var(--text-secondary)', borderRadius: 'var(--radius-md)' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                                     <div>
                                         <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600 }}>{request.title}</h3>
-                                        <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: 'var(--text-secondary-light)' }}>Tenant: {request.tenant_name}</p>
+                                        <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Tenant: {request.tenant_name}</p>
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                                         <span style={{
@@ -245,7 +228,7 @@ const HouseDetail = () => {
                                             backgroundColor:
                                                 request.priority === 'EMERGENCY' ? 'var(--danger-color)' :
                                                     request.priority === 'HIGH' ? 'var(--accent-color)' :
-                                                        'var(--text-secondary-light)',
+                                                        'var(--text-secondary)',
                                             color: 'white'
                                         }}>
                                             {request.priority}
@@ -258,7 +241,7 @@ const HouseDetail = () => {
                                             backgroundColor:
                                                 request.status === 'COMPLETED' ? 'var(--success-color)' :
                                                     request.status === 'IN_PROGRESS' ? 'var(--accent-color)' :
-                                                        'var(--text-secondary-light)',
+                                                        'var(--text-secondary)',
                                             color: 'white'
                                         }}>
                                             {request.status}
@@ -266,7 +249,7 @@ const HouseDetail = () => {
                                     </div>
                                 </div>
                                 <p style={{ margin: '0.5rem 0', fontSize: '0.875rem' }}>{request.description}</p>
-                                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.75rem', fontSize: '0.875rem', color: 'var(--text-secondary-light)' }}>
+                                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.75rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                         <Clock size={14} />
                                         {formatDate(request.request_date)}
@@ -288,7 +271,7 @@ const HouseDetail = () => {
                         ))}
                     </div>
                 ) : (
-                    <p style={{ color: 'var(--text-secondary-light)', textAlign: 'center', padding: '2rem' }}>No maintenance requests</p>
+                    <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '2rem' }}>No maintenance requests</p>
                 )}
             </div>
 
@@ -301,13 +284,13 @@ const HouseDetail = () => {
                     </h2>
                     <div style={{ display: 'grid', gap: 'var(--spacing-md)' }}>
                         {house.tenant_history.map((tenant) => (
-                            <div key={tenant.id} style={{ padding: 'var(--spacing-md)', border: '1px solid var(--text-secondary-light)', borderRadius: 'var(--radius-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div key={tenant.id} style={{ padding: 'var(--spacing-md)', border: '1px solid var(--text-secondary)', borderRadius: 'var(--radius-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div>
                                     <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{tenant.name}</h3>
-                                    <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: 'var(--text-secondary-light)' }}>
+                                    <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                                         {tenant.email} • {tenant.phone}
                                     </p>
-                                    <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: 'var(--text-secondary-light)' }}>
+                                    <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                                         {formatDate(tenant.lease_start)} - {formatDate(tenant.lease_end)}
                                     </p>
                                 </div>

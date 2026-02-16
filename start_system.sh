@@ -95,6 +95,10 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Fix permissions for NGINX to access frontend files
+echo "Setting directory permissions for NGINX access..."
+chmod +x $HOME $HOME/Desktop $HOME/Desktop/Code $HOME/Desktop/Code/RentManagement $HOME/Desktop/Code/RentManagement/frontend $HOME/Desktop/Code/RentManagement/frontend/dist
+
 # Restart NGINX
 echo "Restarting NGINX..."
 sudo systemctl restart nginx
@@ -107,14 +111,28 @@ echo -e "${GREEN}✓ NGINX started successfully${NC}"
 # Step 5: Start Django Backend
 echo ""
 echo -e "${YELLOW}[5/5] Starting Django backend...${NC}"
+
+# Kill any existing Django servers on the port
+echo "Checking for existing Django processes..."
+pkill -f "python manage.py runserver" 2>/dev/null
+sleep 1
+
 cd backend
 python manage.py runserver &
 BACKEND_PID=$!
 cd ..
 
-# Wait for backend to start
-sleep 2
-echo -e "${GREEN}✓ Backend server started${NC}"
+# Wait for backend to start and verify
+sleep 3
+
+# Check if the process is still running
+if ps -p $BACKEND_PID > /dev/null 2>&1; then
+    echo -e "${GREEN}✓ Backend server started successfully${NC}"
+else
+    echo -e "${RED}✗ Backend server failed to start${NC}"
+    echo -e "${RED}Check if port 8000 is in use or check logs for errors${NC}"
+    exit 1
+fi
 
 # Display access information
 echo ""

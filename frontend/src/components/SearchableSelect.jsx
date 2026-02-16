@@ -58,9 +58,9 @@ const SearchableSelect = ({
                     width: '100%',
                     padding: '0.75rem',
                     borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--text-secondary-light)',
+                    border: '1px solid var(--text-secondary)',
                     backgroundColor: 'var(--background-light)',
-                    color: selectedOption ? 'var(--text-primary-light)' : 'var(--text-secondary-light)',
+                    color: selectedOption ? 'var(--text-primary)' : 'var(--text-secondary)',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -75,7 +75,7 @@ const SearchableSelect = ({
                 }}>
                     {selectedOption ? selectedOption[labelKey] : placeholder}
                 </span>
-                <ChevronDown size={16} color="var(--text-secondary-light)" />
+                <ChevronDown size={16} color="var(--text-secondary)" />
             </div>
 
             {isOpen && (
@@ -86,7 +86,7 @@ const SearchableSelect = ({
                     right: 0,
                     marginTop: '0.25rem',
                     backgroundColor: 'var(--background-light)',
-                    border: '1px solid var(--text-secondary-light)',
+                    border: '1px solid var(--text-secondary)',
                     borderRadius: 'var(--radius-md)',
                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                     zIndex: 50,
@@ -95,7 +95,7 @@ const SearchableSelect = ({
                 }}>
                     <div style={{ padding: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
                         <div style={{ position: 'relative' }}>
-                            <Search size={14} style={{ position: 'absolute', left: '0.5rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary-light)' }} />
+                            <Search size={14} style={{ position: 'absolute', left: '0.5rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
                             <input
                                 type="text"
                                 value={searchTerm}
@@ -105,9 +105,9 @@ const SearchableSelect = ({
                                     width: '100%',
                                     padding: '0.5rem 0.5rem 0.5rem 2rem',
                                     borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--text-secondary-light)',
+                                    border: '1px solid var(--text-secondary)',
                                     backgroundColor: 'var(--background-light)', // explicitly set background
-                                    color: 'var(--text-primary-light)', // explicitly set text color
+                                    color: 'var(--text-primary)', // explicitly set text color
                                     fontSize: '0.875rem'
                                 }}
                                 autoFocus
@@ -127,7 +127,7 @@ const SearchableSelect = ({
                                     padding: '0.75rem',
                                     cursor: 'pointer',
                                     fontSize: '0.875rem',
-                                    color: 'var(--text-primary-light)',
+                                    color: 'var(--text-primary)',
                                     display: 'flex',
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
@@ -139,7 +139,7 @@ const SearchableSelect = ({
                             </div>
                         ))
                     ) : (
-                        <div style={{ padding: '0.75rem', textAlign: 'center', color: 'var(--text-secondary-light)', fontSize: '0.875rem' }}>
+                        <div style={{ padding: '0.75rem', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
                             No results found
                         </div>
                     )}

@@ -36,7 +36,7 @@ const PaymentList = () => {
             case 'PENDING': return 'var(--accent-color)';
             case 'LATE': return 'var(--warning-color)';
             case 'FAILED': return 'var(--danger-color)';
-            default: return 'var(--text-secondary-light)';
+            default: return 'var(--text-secondary)';
         }
     };
 
@@ -68,19 +68,9 @@ const PaymentList = () => {
     const failedPayments = payments.filter(p => p.status === 'FAILED');
 
     return (
-        <div className="container">
+        <div className="container payment-container">
             {failedPayments.length > 0 && (
-                <div style={{
-                    backgroundColor: 'var(--danger-color)',
-                    color: 'white',
-                    padding: '1rem',
-                    borderRadius: 'var(--radius-md)',
-                    marginBottom: 'var(--spacing-lg)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                }}>
+                <div className="payment-alert">
                     <AlertCircle size={24} />
                     <div>
                         <strong>Action Required:</strong> {failedPayments.length} payment(s) have failed (over 30 days late).
@@ -88,53 +78,31 @@ const PaymentList = () => {
                 </div>
             )}
 
-            <header style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: 'var(--spacing-xl)'
-            }}>
-                <div>
-                    <h1 style={{ fontSize: '1.875rem', fontWeight: 700, margin: 0 }}>Payments</h1>
-                    <p style={{ color: 'var(--text-secondary-light)', marginTop: '0.5rem' }}>Track rent and fee collections</p>
+            <header className="page-header payment-page-header">
+                <div className="header-content">
+                    <h1>Payments</h1>
+                    <p>Track rent and fee collections</p>
                 </div>
                 <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
-                    <Plus size={18} style={{ marginRight: '0.5rem' }} />
+                    <Plus size={18} />
                     Record Payment
                 </button>
             </header>
 
-            <div className="card" style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-md)' }}>
-                <div style={{ position: 'relative', flex: 1 }}>
-                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary-light)' }} />
+            <div className="card payment-filters">
+                <div className="payment-search-wrapper">
+                    <Search size={20} className="search-icon" />
                     <input
                         type="text"
                         placeholder="Search payments, tenants, or houses..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '0.75rem 1rem 0.75rem 3rem',
-                            borderRadius: 'var(--radius-md)',
-                            border: '1px solid var(--text-secondary-light)',
-                            backgroundColor: 'transparent',
-                            color: 'inherit',
-                            fontSize: '1rem'
-                        }}
                     />
                 </div>
                 <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    style={{
-                        padding: '0.75rem 1rem',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--text-secondary-light)',
-                        backgroundColor: 'transparent',
-                        color: 'inherit',
-                        fontSize: '1rem',
-                        minWidth: '150px'
-                    }}
+                    className="payment-status-select"
                 >
                     <option value="ALL">All Status</option>
                     <option value="PAID">Paid</option>
@@ -144,45 +112,39 @@ const PaymentList = () => {
                 </select>
             </div>
 
-            <div style={{ display: 'grid', gap: 'var(--spacing-md)' }}>
+            <div className="payment-list">
                 {filteredPayments.map(payment => {
                     const StatusIcon = getStatusIcon(payment.status);
                     const statusColor = getStatusColor(payment.status);
 
                     return (
-                        <div key={payment.id} className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-                                <div style={{
-                                    width: '48px',
-                                    height: '48px',
-                                    borderRadius: '50%',
+                        <div key={payment.id} className="card payment-card">
+                            <div className="payment-info-wrapper">
+                                <div className="payment-icon-wrapper" style={{
                                     backgroundColor: `color-mix(in srgb, ${statusColor} 15%, transparent)`,
-                                    color: statusColor,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
+                                    color: statusColor
                                 }}>
                                     <DollarSign size={24} />
                                 </div>
-                                <div>
-                                    <h3 style={{ margin: 0, fontSize: '1.125rem' }}>{payment.payment_type}</h3>
-                                    <div style={{ fontSize: '0.875rem', fontWeight: 600, marginTop: '0.125rem' }}>{payment.tenant_name}</div>
-                                    <div style={{ display: 'flex', gap: '1rem', marginTop: '0.25rem', color: 'var(--text-secondary-light)', fontSize: '0.875rem' }}>
-                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                <div className="payment-details">
+                                    <h3>{payment.payment_type}</h3>
+                                    <div className="tenant-name">{payment.tenant_name}</div>
+                                    <div className="payment-meta">
+                                        <span>
                                             <Calendar size={14} /> Due: {formatDate(payment.date_due)}
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontWeight: 600, fontSize: '1rem' }}>{formatCurrency(payment.amount)}</div>
+                            <div className="payment-amount-wrapper">
+                                <div className="payment-amount">{formatCurrency(payment.amount)}</div>
                                 {payment.house_number && (
-                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary-light)', marginTop: '0.25rem' }}>
+                                    <div className="payment-house-info">
                                         House {payment.house_number}
                                     </div>
                                 )}
-                                <div style={{ fontSize: '0.875rem', color: statusColor, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.25rem', marginTop: '0.25rem' }}>
+                                <div className="payment-status-badge" style={{ color: statusColor }}>
                                     <StatusIcon size={14} />
                                     {payment.status}
                                 </div>
@@ -191,7 +153,7 @@ const PaymentList = () => {
                     );
                 })}
                 {filteredPayments.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary-light)' }}>
+                    <div className="payment-empty-state">
                         No payments found.
                     </div>
                 )}

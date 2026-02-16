@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Home, CreditCard, Wrench, FileText, Users } from 'lucide-react';
+import { LayoutDashboard, Home, CreditCard, Wrench, FileText, Users, Menu, X } from 'lucide-react';
 import './index.css';
 
 const Layout = () => {
     const location = useLocation();
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isBottomNavVisible, setIsBottomNavVisible] = useState(true);
+    const [lastScrollY, setLastScrollY] = useState(0);
 
     const navItems = [
         { path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -15,22 +18,74 @@ const Layout = () => {
         { path: '/reports', label: 'Reports', icon: FileText },
     ];
 
+    const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+
+    // Scroll detection for retractable bottom nav
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+
+            // Show nav when scrolling up, hide when scrolling down
+            if (currentScrollY < lastScrollY || currentScrollY < 50) {
+                setIsBottomNavVisible(true);
+            } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+                setIsBottomNavVisible(false);
+            }
+
+            setLastScrollY(currentScrollY);
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [lastScrollY]);
+
     return (
-        <div style={{ display: 'flex', minHeight: '100vh' }}>
-            {/* Sidebar */}
-            <aside style={{
-                width: '250px',
-                backgroundColor: 'var(--surface-dark)',
-                color: 'white',
-                padding: 'var(--spacing-lg)',
-                display: 'flex',
-                flexDirection: 'column'
-            }}>
-                <div style={{ marginBottom: 'var(--spacing-xl)', fontSize: '1.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className="layout-wrapper">
+            {/* Mobile Header */}
+            <header className="mobile-header">
+                <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>RentManager</div>
+                <button
+                    className="mobile-menu-button"
+                    onClick={toggleMobileMenu}
+                    aria-label="Toggle menu"
+                >
+                    {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
+            </header>
+
+            {/* Mobile Overlay Menu */}
+            {isMobileMenuOpen && (
+                <div className="mobile-menu-overlay" onClick={toggleMobileMenu}>
+                    <div className="mobile-menu" onClick={(e) => e.stopPropagation()}>
+                        <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+                            {navItems.map((item) => {
+                                const isActive = location.pathname === item.path;
+                                const Icon = item.icon;
+
+                                return (
+                                    <Link
+                                        key={item.path}
+                                        to={item.path}
+                                        onClick={toggleMobileMenu}
+                                        className={`nav-link ${isActive ? 'active' : ''}`}
+                                    >
+                                        <Icon size={20} />
+                                        {item.label}
+                                    </Link>
+                                );
+                            })}
+                        </nav>
+                    </div>
+                </div>
+            )}
+
+            {/* Desktop Sidebar */}
+            <aside className="desktop-sidebar">
+                <div className="sidebar-header">
                     <span>RentManager</span>
                 </div>
 
-                <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+                <nav className="sidebar-nav">
                     {navItems.map((item) => {
                         const isActive = location.pathname === item.path;
                         const Icon = item.icon;
@@ -39,18 +94,7 @@ const Layout = () => {
                             <Link
                                 key={item.path}
                                 to={item.path}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 'var(--spacing-md)',
-                                    padding: 'var(--spacing-md)',
-                                    borderRadius: 'var(--radius-md)',
-                                    backgroundColor: isActive ? 'var(--primary-color)' : 'transparent',
-                                    color: isActive ? 'white' : 'var(--text-secondary-dark)',
-                                    textDecoration: 'none',
-                                    transition: 'all 0.2s',
-                                    fontWeight: isActive ? 600 : 400
-                                }}
+                                className={`nav-link ${isActive ? 'active' : ''}`}
                             >
                                 <Icon size={20} />
                                 {item.label}
@@ -61,9 +105,28 @@ const Layout = () => {
             </aside>
 
             {/* Main Content */}
-            <main style={{ flex: 1, padding: 'var(--spacing-xl)', backgroundColor: 'var(--background-light)', overflowY: 'auto' }}>
+            <main className="main-content">
                 <Outlet />
             </main>
+
+            {/* Mobile Bottom Navigation - Retractable */}
+            <nav className={`mobile-bottom-nav ${isBottomNavVisible ? 'visible' : 'hidden'}`}>
+                {navItems.slice(0, 5).map((item) => {
+                    const isActive = location.pathname === item.path;
+                    const Icon = item.icon;
+
+                    return (
+                        <Link
+                            key={item.path}
+                            to={item.path}
+                            className={`bottom-nav-item ${isActive ? 'active' : ''}`}
+                        >
+                            <Icon size={20} />
+                            <span>{item.label}</span>
+                        </Link>
+                    );
+                })}
+            </nav>
         </div>
     );
 };

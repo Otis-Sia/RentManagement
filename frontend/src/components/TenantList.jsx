@@ -48,25 +48,27 @@ const TenantList = () => {
 
     return (
         <div className="container">
-            <header style={{
+            <header className="page-header" style={{
                 display: 'flex',
+                flexWrap: 'wrap',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                gap: 'var(--spacing-md)',
                 marginBottom: 'var(--spacing-xl)'
             }}>
-                <div>
+                <div style={{ flex: '1 1 auto', minWidth: '200px' }}>
                     <h1 style={{ fontSize: '1.875rem', fontWeight: 700, margin: 0 }}>Tenants</h1>
-                    <p style={{ color: 'var(--text-secondary-light)', marginTop: '0.5rem' }}>Manage your residents and leases</p>
+                    <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Manage your residents and leases</p>
                 </div>
-                <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
+                <button className="btn btn-primary" onClick={() => setIsModalOpen(true)} style={{ whiteSpace: 'nowrap' }}>
                     <Plus size={18} style={{ marginRight: '0.5rem' }} />
                     Add Tenant
                 </button>
             </header>
 
-            <div className="card" style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-md)' }}>
-                <div style={{ position: 'relative', flex: 1 }}>
-                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary-light)' }} />
+            <div className="card" style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-md)' }}>
+                <div style={{ position: 'relative', flex: '1 1 300px', minWidth: 0 }}>
+                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
                     <input
                         type="text"
                         placeholder="Search tenants by name or email..."
@@ -76,7 +78,7 @@ const TenantList = () => {
                             width: '100%',
                             padding: '0.75rem 1rem 0.75rem 3rem',
                             borderRadius: 'var(--radius-md)',
-                            border: '1px solid var(--text-secondary-light)',
+                            border: '1px solid var(--text-secondary)',
                             backgroundColor: 'transparent',
                             color: 'inherit',
                             fontSize: '1rem'
@@ -87,13 +89,14 @@ const TenantList = () => {
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                     style={{
+                        flex: '0 1 auto',
+                        minWidth: '150px',
                         padding: '0.75rem 1rem',
                         borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--text-secondary-light)',
+                        border: '1px solid var(--text-secondary)',
                         backgroundColor: 'transparent',
                         color: 'inherit',
-                        fontSize: '1rem',
-                        minWidth: '150px'
+                        fontSize: '1rem'
                     }}
                 >
                     <option value="ALL">All Status</option>
@@ -129,13 +132,14 @@ const TenantList = () => {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 fontWeight: 600,
-                                fontSize: '1.25rem'
+                                fontSize: '1.25rem',
+                                flexShrink: 0
                             }}>
                                 {tenant.name.charAt(0)}
                             </div>
                             <div>
                                 <h3 style={{ margin: 0, fontSize: '1.125rem' }}>{tenant.name}</h3>
-                                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.25rem', color: 'var(--text-secondary-light)', fontSize: '0.875rem' }}>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '0.25rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
                                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Mail size={14} /> {tenant.email}</span>
                                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Phone size={14} /> {tenant.phone}</span>
                                     {tenant.house_number && (
@@ -150,14 +154,14 @@ const TenantList = () => {
 
                         <div style={{ textAlign: 'right' }}>
                             <div style={{ fontWeight: 600, fontSize: '1rem' }}>{formatCurrency(tenant.rent_amount)}/mo</div>
-                            <div style={{ fontSize: '0.875rem', color: tenant.is_active ? 'var(--success-color)' : 'var(--text-secondary-light)' }}>
+                            <div style={{ fontSize: '0.875rem', color: tenant.is_active ? 'var(--success-color)' : 'var(--text-secondary)' }}>
                                 {tenant.is_active ? 'Active Lease' : 'Inactive'}
                             </div>
                         </div>
                     </div>
                 ))}
                 {filteredTenants.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary-light)' }}>
+                    <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
                         No tenants found matching your search.
                     </div>
                 )}

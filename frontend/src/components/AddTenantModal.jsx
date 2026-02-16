@@ -104,9 +104,9 @@ const AddTenantModal = ({ isOpen, onClose, onTenantAdded, preselectedPropertyId 
         width: '100%',
         padding: '0.75rem',
         borderRadius: 'var(--radius-md)',
-        border: '1px solid var(--text-secondary-light)',
+        border: '1px solid var(--text-secondary)',
         backgroundColor: 'var(--background-light)',
-        color: 'var(--text-primary-light)' // Force dark text 
+        color: 'var(--text-primary)' // Force dark text 
     };
 
     return (
@@ -267,7 +267,7 @@ const AddTenantModal = ({ isOpen, onClose, onTenantAdded, preselectedPropertyId 
                             style={inputStyle}
                             placeholder="Day of month (1-31)"
                         />
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary-light)' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                             Day of the month when rent is expected
                         </span>
                     </div>

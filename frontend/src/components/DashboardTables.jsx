@@ -35,7 +35,7 @@ const TableHeader = ({ children }) => (
         textAlign: 'left',
         fontSize: '0.75rem',
         fontWeight: 600,
-        color: 'var(--text-secondary-light)',
+        color: 'var(--text-secondary)',
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
         borderBottom: '2px solid var(--border-color)'
@@ -48,7 +48,7 @@ const TableCell = ({ children, align = 'left' }) => (
     <td style={{
         padding: 'var(--spacing-sm) var(--spacing-md)',
         fontSize: '0.875rem',
-        color: 'var(--text-primary-light)',
+        color: 'var(--text-primary)',
         textAlign: align,
         borderBottom: '1px solid var(--border-color)'
     }}>
@@ -59,13 +59,7 @@ const TableCell = ({ children, align = 'left' }) => (
 const DashboardTables = ({ data }) => {
     if (!data) return null;
 
-    const tableStyle = {
-        width: '100%',
-        borderCollapse: 'collapse',
-        backgroundColor: 'var(--surface-color)',
-        borderRadius: 'var(--radius-lg)',
-        overflow: 'hidden'
-    };
+
 
     return (
         <div style={{
@@ -79,8 +73,8 @@ const DashboardTables = ({ data }) => {
                     <h3 style={{ margin: '0 0 var(--spacing-md) 0', fontSize: '1.125rem', fontWeight: 600 }}>
                         Recent Payments
                     </h3>
-                    <div style={{ overflowX: 'auto' }}>
-                        <table style={tableStyle}>
+                    <div className="table-container">
+                        <table>
                             <thead>
                                 <tr>
                                     <TableHeader>Tenant</TableHeader>
@@ -116,8 +110,8 @@ const DashboardTables = ({ data }) => {
                     <h3 style={{ margin: '0 0 var(--spacing-md) 0', fontSize: '1.125rem', fontWeight: 600 }}>
                         Upcoming Payments
                     </h3>
-                    <div style={{ overflowX: 'auto' }}>
-                        <table style={tableStyle}>
+                    <div className="table-container">
+                        <table>
                             <thead>
                                 <tr>
                                     <TableHeader>Tenant</TableHeader>
@@ -151,8 +145,8 @@ const DashboardTables = ({ data }) => {
                     <h3 style={{ margin: '0 0 var(--spacing-md) 0', fontSize: '1.125rem', fontWeight: 600 }}>
                         Active Maintenance
                     </h3>
-                    <div style={{ overflowX: 'auto' }}>
-                        <table style={tableStyle}>
+                    <div className="table-container">
+                        <table>
                             <thead>
                                 <tr>
                                     <TableHeader>Title</TableHeader>

@@ -1,24 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { DollarSign, AlertCircle, Wrench, TrendingUp } from 'lucide-react';
 import { formatCurrency } from '../utils/format';
+import DashboardCharts from './DashboardCharts';
+import DashboardTables from './DashboardTables';
 
 const StatCard = ({ title, value, icon: Icon, color, subtitle }) => (
-    <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+    <div className="card stat-card">
+        <div className="stat-card-header">
             <div>
-                <p style={{ color: 'var(--text-secondary-light)', fontSize: '0.875rem', fontWeight: 500, margin: 0 }}>{title}</p>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0.5rem 0' }}>{value}</h3>
+                <p className="stat-title">{title}</p>
+                <h3 className="stat-value">{value}</h3>
             </div>
-            <div style={{
-                padding: '0.5rem',
-                borderRadius: 'var(--radius-md)',
+            <div className="stat-icon-wrapper" style={{
                 backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`,
                 color: color
             }}>
                 <Icon size={24} />
             </div>
         </div>
-        {subtitle && <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary-light)', margin: 0 }}>{subtitle}</p>}
+        {subtitle && <p className="stat-subtitle">{subtitle}</p>}
     </div>
 );
 
@@ -53,22 +53,16 @@ const Dashboard = () => {
             });
     }, []);
 
-
-
     if (loading) return <div>Loading dashboard...</div>;
 
     return (
-        <div className="container">
-            <header style={{ marginBottom: 'var(--spacing-xl)' }}>
-                <h1 style={{ fontSize: '1.875rem', fontWeight: 700, color: 'var(--text-primary-light)', margin: 0 }}>Dashboard</h1>
-                <p style={{ color: 'var(--text-secondary-light)', marginTop: '0.5rem' }}>Overview of your property metrics</p>
+        <div className="container dashboard-container">
+            <header className="dashboard-header">
+                <h1>Dashboard</h1>
+                <p>Overview of your property metrics</p>
             </header>
 
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                gap: 'var(--spacing-lg)'
-            }}>
+            <div className="dashboard-grid">
                 <StatCard
                     title="Monthly Income"
                     value={formatCurrency(stats.monthly_income)}
@@ -98,6 +92,9 @@ const Dashboard = () => {
                     subtitle="Income minus maintenance"
                 />
             </div>
+
+            <DashboardCharts data={stats} />
+            <DashboardTables data={stats} />
         </div>
     );
 };

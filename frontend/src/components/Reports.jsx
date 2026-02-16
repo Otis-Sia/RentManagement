@@ -25,7 +25,7 @@ const Reports = () => {
         <div className="container">
             <header style={{ marginBottom: 'var(--spacing-xl)' }}>
                 <h1 style={{ fontSize: '1.875rem', fontWeight: 700, margin: 0 }}>Financial Reports</h1>
-                <p style={{ color: 'var(--text-secondary-light)', marginTop: '0.5rem' }}>Detailed financial overview</p>
+                <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Detailed financial overview</p>
             </header>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--spacing-lg)' }}>
@@ -34,11 +34,11 @@ const Reports = () => {
                         <DollarSign size={20} /> Income Statement
                     </h3>
                     <div style={{ marginTop: '1rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--text-secondary-light)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--text-secondary)' }}>
                             <span>Total Revenue</span>
                             <span style={{ fontWeight: 600, color: 'var(--success-color)' }}>{formatCurrency(stats?.monthly_income)}</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--text-secondary-light)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--text-secondary)' }}>
                             <span>Maintenance Expenses</span>
                             <span style={{ fontWeight: 600, color: 'var(--danger-color)' }}>-{formatCurrency(stats?.maintenance_costs)}</span>
                         </div>
@@ -55,7 +55,7 @@ const Reports = () => {
                     </h3>
                     <div style={{ marginTop: '1rem', textAlign: 'center' }}>
                         <h2 style={{ fontSize: '3rem', margin: '1rem 0', color: 'var(--danger-color)' }}>{formatCurrency(stats?.outstanding_balance)}</h2>
-                        <p style={{ color: 'var(--text-secondary-light)' }}>Total Unpaid Rent & Fees</p>
+                        <p style={{ color: 'var(--text-secondary)' }}>Total Unpaid Rent & Fees</p>
                     </div>
                 </div>
             </div>

@@ -10,8 +10,17 @@ const AddHouseModal = ({ isOpen, onClose, onHouseAdded }) => {
         square_feet: '',
         monthly_rent: ''
     });
+    const [errors, setErrors] = useState({});
+    const [submitting, setSubmitting] = useState(false);
 
-
+    const inputStyle = {
+        width: '100%',
+        padding: '0.75rem',
+        borderRadius: 'var(--radius-md)',
+        backgroundColor: 'var(--background-light)',
+        color: 'var(--text-primary-light)', // Force dark text
+        fontSize: '1rem'
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -141,7 +150,13 @@ const AddHouseModal = ({ isOpen, onClose, onHouseAdded }) => {
                             name="house_number"
                             value={formData.house_number}
                             onChange={handleChange}
-                            {errors.house_number && <span style={{ color: 'var(--danger-color)', fontSize: '0.75rem' }}>{errors.house_number}</span>}
+                            placeholder="e.g., 101, A1, etc."
+                            style={{
+                                ...inputStyle,
+                                border: `1px solid ${errors.house_number ? 'var(--danger-color)' : 'var(--text-secondary-light)'}`
+                            }}
+                        />
+                        {errors.house_number && <span style={{ color: 'var(--danger-color)', fontSize: '0.75rem' }}>{errors.house_number}</span>}
                     </div>
 
                     <div style={{ marginBottom: 'var(--spacing-md)' }}>
@@ -153,7 +168,13 @@ const AddHouseModal = ({ isOpen, onClose, onHouseAdded }) => {
                             name="address"
                             value={formData.address}
                             onChange={handleChange}
-                            {errors.address && <span style={{ color: 'var(--danger-color)', fontSize: '0.75rem' }}>{errors.address}</span>}
+                            placeholder="Full address of the property"
+                            style={{
+                                ...inputStyle,
+                                border: `1px solid ${errors.address ? 'var(--danger-color)' : 'var(--text-secondary-light)'}`
+                            }}
+                        />
+                        {errors.address && <span style={{ color: 'var(--danger-color)', fontSize: '0.75rem' }}>{errors.address}</span>}
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
@@ -166,6 +187,12 @@ const AddHouseModal = ({ isOpen, onClose, onHouseAdded }) => {
                                 name="bedrooms"
                                 value={formData.bedrooms}
                                 onChange={handleChange}
+                                min="0"
+                                style={{
+                                    ...inputStyle,
+                                    border: '1px solid var(--text-secondary-light)'
+                                }}
+                            />
                         </div>
 
                         <div>
@@ -177,6 +204,12 @@ const AddHouseModal = ({ isOpen, onClose, onHouseAdded }) => {
                                 name="bathrooms"
                                 value={formData.bathrooms}
                                 onChange={handleChange}
+                                min="0"
+                                style={{
+                                    ...inputStyle,
+                                    border: '1px solid var(--text-secondary-light)'
+                                }}
+                            />
                         </div>
                     </div>
 
@@ -191,7 +224,10 @@ const AddHouseModal = ({ isOpen, onClose, onHouseAdded }) => {
                             onChange={handleChange}
                             placeholder="Property size in sq ft"
                             min="0"
-                            style={{ width: '100%', padding: '0.75rem', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', fontSize: '1rem' }}
+                            style={{
+                                ...inputStyle,
+                                border: '1px solid var(--text-secondary-light)'
+                            }}
                         />
                     </div>
 
@@ -206,7 +242,13 @@ const AddHouseModal = ({ isOpen, onClose, onHouseAdded }) => {
                             onChange={handleChange}
                             placeholder="0.00"
                             step="0.01"
-                            {errors.monthly_rent && <span style={{ color: 'var(--danger-color)', fontSize: '0.75rem' }}>{errors.monthly_rent}</span>}
+                            min="0"
+                            style={{
+                                ...inputStyle,
+                                border: `1px solid ${errors.monthly_rent ? 'var(--danger-color)' : 'var(--text-secondary-light)'}`
+                            }}
+                        />
+                        {errors.monthly_rent && <span style={{ color: 'var(--danger-color)', fontSize: '0.75rem' }}>{errors.monthly_rent}</span>}
                     </div>
 
                     <div style={{ display: 'flex', gap: 'var(--spacing-md)', justifyContent: 'flex-end' }}>

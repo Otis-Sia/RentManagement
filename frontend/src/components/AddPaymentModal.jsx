@@ -4,6 +4,7 @@ import SearchableSelect from './SearchableSelect';
 
 const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
     const [properties, setProperties] = useState([]);
+    const [arrearsPayments, setArrearsPayments] = useState([]);
     const [formData, setFormData] = useState({
         tenant: '', // This will store the tenant ID
         house_id: '', // Just for UI state, not sent to backend if backend expects tenant
@@ -12,7 +13,8 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
         date_paid: '',
         payment_type: 'RENT',
         // status is removed from initial state as it's calculated
-        transaction_id: ''
+        transaction_id: '',
+        clear_arrears_payment_id: ''
     });
     const [calculatedStatus, setCalculatedStatus] = useState('PENDING');
     const [loading, setLoading] = useState(false);
@@ -21,6 +23,7 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
     useEffect(() => {
         if (isOpen) {
             fetchProperties();
+            fetchArrearsPayments();
         }
     }, [isOpen]);
 
@@ -36,9 +39,18 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
         }
     };
 
+    const fetchArrearsPayments = async () => {
+        try {
+            const response = await fetch('/api/payments/');
+            const data = await response.json();
+            setArrearsPayments(data.filter(payment => payment.status === 'LATE' || payment.status === 'FAILED'));
+        } catch (err) {
+            console.error('Error fetching arrears payments:', err);
+        }
+    };
+
     const handleHouseChange = (e) => {
-        // e.target.value might be the ID directly if coming from SearchableSelect
-        const houseId = parseInt(e.target.value || e.target.name === 'house_id' ? e.target.value : 0);
+        const houseId = parseInt(e.target.value, 10) || 0;
         const house = properties.find(p => p.id === houseId);
 
         if (house && house.current_tenant_id) {
@@ -66,20 +78,33 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                 tenant: house.current_tenant_id,
                 // Optional: Auto-fill rent amount if not set
                 amount: prev.amount || house.monthly_rent || '',
-                date_due: dueDate
+                date_due: dueDate,
+                clear_arrears_payment_id: ''
             }));
         } else {
             setFormData(prev => ({
                 ...prev,
                 house_id: houseId,
                 tenant: '',
-                date_due: ''
+                date_due: '',
+                clear_arrears_payment_id: ''
             }));
         }
     };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+
+        if (name === 'clear_arrears_payment_id') {
+            const today = new Date().toISOString().split('T')[0];
+            setFormData(prev => ({
+                ...prev,
+                [name]: value,
+                date_paid: value && !prev.date_paid ? today : prev.date_paid
+            }));
+            return;
+        }
+
         setFormData(prev => ({
             ...prev,
             [name]: value
@@ -135,7 +160,8 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                 date_paid: formData.date_paid || null,
                 payment_type: formData.payment_type,
                 // status is handled by backend
-                transaction_id: formData.transaction_id
+                transaction_id: formData.transaction_id,
+                clear_arrears_payment_id: formData.clear_arrears_payment_id ? parseInt(formData.clear_arrears_payment_id, 10) : null
             };
 
             const response = await fetch('/api/payments/', {
@@ -162,7 +188,8 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                 date_due: '',
                 date_paid: '',
                 payment_type: 'RENT',
-                transaction_id: ''
+                transaction_id: '',
+                clear_arrears_payment_id: ''
             });
         } catch (err) {
             console.error('Error adding payment:', err);
@@ -181,6 +208,10 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
         backgroundColor: 'var(--surface-color)',
         color: 'var(--text-primary)'
     };
+
+    const tenantArrearsPayments = arrearsPayments.filter(
+        payment => parseInt(payment.tenant, 10) === parseInt(formData.tenant, 10)
+    );
 
     return (
         <div style={{
@@ -310,6 +341,27 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                             />
                         </div>
                     </div>
+
+                    {formData.tenant && (
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+                                Clear Arrears Payment (Optional)
+                            </label>
+                            <select
+                                name="clear_arrears_payment_id"
+                                value={formData.clear_arrears_payment_id}
+                                onChange={handleChange}
+                                style={inputStyle}
+                            >
+                                <option value="">No arrears payment selected</option>
+                                {tenantArrearsPayments.map(payment => (
+                                    <option key={payment.id} value={payment.id}>
+                                        {`${payment.status} - ${payment.payment_type} - Due ${payment.date_due} - KSh ${payment.amount}`}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
 
                     <div>
                         <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Transaction ID (Optional)</label>

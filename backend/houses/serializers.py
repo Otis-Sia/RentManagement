@@ -8,6 +8,7 @@ from maintenance.models import MaintenanceRequest
 
 class PropertySerializer(serializers.ModelSerializer):
     current_tenant_name = serializers.SerializerMethodField()
+    current_tenant_id = serializers.SerializerMethodField()
     current_tenant_rent_due_day = serializers.SerializerMethodField()
     is_occupied = serializers.SerializerMethodField()
     
@@ -18,6 +19,10 @@ class PropertySerializer(serializers.ModelSerializer):
     def get_current_tenant_name(self, obj):
         tenant = obj.get_current_tenant()
         return tenant.name if tenant else None
+
+    def get_current_tenant_id(self, obj):
+        tenant = obj.get_current_tenant()
+        return tenant.id if tenant else None
 
     def get_is_occupied(self, obj):
         """
@@ -46,19 +51,21 @@ class TenantBasicSerializer(serializers.ModelSerializer):
 class PaymentBasicSerializer(serializers.ModelSerializer):
     """Simplified payment serializer for nested display"""
     tenant_name = serializers.CharField(source='tenant.name', read_only=True)
+    tenant_id = serializers.IntegerField(source='tenant.id', read_only=True)
     
     class Meta:
         model = Payment
-        fields = ['id', 'tenant_name', 'amount', 'date_due', 'date_paid', 'payment_type', 'status', 'created_at']
+        fields = ['id', 'tenant_name', 'tenant_id', 'amount', 'date_due', 'date_paid', 'payment_type', 'status', 'created_at']
 
 
 class MaintenanceBasicSerializer(serializers.ModelSerializer):
     """Simplified maintenance serializer for nested display"""
     tenant_name = serializers.CharField(source='tenant.name', read_only=True)
+    tenant_id = serializers.IntegerField(source='tenant.id', read_only=True)
     
     class Meta:
         model = MaintenanceRequest
-        fields = ['id', 'tenant_name', 'title', 'description', 'priority', 'status', 'cost', 'request_date', 'resolved_date']
+        fields = ['id', 'tenant_name', 'tenant_id', 'title', 'description', 'priority', 'status', 'cost', 'request_date', 'resolved_date']
 
 
 class PropertyDetailSerializer(serializers.ModelSerializer):

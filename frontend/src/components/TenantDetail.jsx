@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, Home, DollarSign, Wrench, Clock, CheckCircle, Mail, Phone, Calendar, AlertCircle } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/format';
+
+const entityLinkStyle = {
+    color: 'var(--primary-color)',
+    textDecoration: 'none',
+    fontWeight: 500
+};
 
 const TenantDetail = () => {
     const { id } = useParams();
@@ -84,8 +90,8 @@ const TenantDetail = () => {
                     <div>
                         <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Current Property</p>
                         {tenant.property ? (
-                            <div
-                                onClick={() => navigate(`/houses/${tenant.property}`)}
+                            <Link
+                                to={`/houses/${tenant.property}`}
                                 style={{
                                     margin: '0.5rem 0 0',
                                     fontWeight: 600,
@@ -93,13 +99,13 @@ const TenantDetail = () => {
                                     alignItems: 'center',
                                     gap: '0.5rem',
                                     color: 'var(--primary-color)',
-                                    cursor: 'pointer'
+                                    textDecoration: 'none'
                                 }}
                             >
                                 <Home size={18} />
                                 House {tenant.house_number}
                                 <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 400 }}>({tenant.house_address})</span>
-                            </div>
+                            </Link>
                         ) : (
                             <p style={{ margin: '0.5rem 0 0', fontWeight: 600, color: 'var(--text-secondary)' }}>No active property</p>
                         )}

@@ -59,7 +59,7 @@ const SearchableSelect = ({
                     padding: '0.75rem',
                     borderRadius: 'var(--radius-md)',
                     border: '1px solid var(--text-secondary)',
-                    backgroundColor: 'var(--background-light)',
+                    backgroundColor: 'var(--surface-color)',
                     color: selectedOption ? 'var(--text-primary)' : 'var(--text-secondary)',
                     cursor: 'pointer',
                     display: 'flex',
@@ -85,7 +85,7 @@ const SearchableSelect = ({
                     left: 0,
                     right: 0,
                     marginTop: '0.25rem',
-                    backgroundColor: 'var(--background-light)',
+                    backgroundColor: 'var(--surface-color)',
                     border: '1px solid var(--text-secondary)',
                     borderRadius: 'var(--radius-md)',
                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
@@ -106,8 +106,8 @@ const SearchableSelect = ({
                                     padding: '0.5rem 0.5rem 0.5rem 2rem',
                                     borderRadius: 'var(--radius-sm)',
                                     border: '1px solid var(--text-secondary)',
-                                    backgroundColor: 'var(--background-light)', // explicitly set background
-                                    color: 'var(--text-primary)', // explicitly set text color
+                                    backgroundColor: 'var(--surface-color)',
+                                    color: 'var(--text-primary)',
                                     fontSize: '0.875rem'
                                 }}
                                 autoFocus

@@ -117,8 +117,8 @@ const AddMaintenanceModal = ({ isOpen, onClose, onRequestAdded }) => {
         padding: '0.75rem',
         borderRadius: 'var(--radius-md)',
         border: '1px solid var(--text-secondary)',
-        backgroundColor: 'var(--background-light)',
-        color: 'var(--text-primary)' // Force dark text 
+        backgroundColor: 'var(--surface-color)',
+        color: 'var(--text-primary)'
     };
 
     return (

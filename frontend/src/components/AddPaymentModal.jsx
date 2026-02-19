@@ -178,8 +178,8 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
         padding: '0.75rem',
         borderRadius: 'var(--radius-md)',
         border: '1px solid var(--text-secondary)',
-        backgroundColor: 'var(--background-light)',
-        color: 'var(--text-primary)' // Force dark text 
+        backgroundColor: 'var(--surface-color)',
+        color: 'var(--text-primary)'
     };
 
     return (
@@ -255,7 +255,7 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                             <div style={{
                                 padding: '0.75rem',
                                 borderRadius: 'var(--radius-md)',
-                                backgroundColor: 'var(--background-light)',
+                                backgroundColor: 'var(--surface-color)',
                                 border: '1px solid var(--text-secondary)',
                                 color:
                                     calculatedStatus === 'PAID' ? 'var(--success-color)' :

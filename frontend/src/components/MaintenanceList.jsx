@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Plus, Search, Wrench, AlertTriangle, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { formatCurrency } from '../utils/format';
 import AddMaintenanceModal from './AddMaintenanceModal';
+
+const entityLinkStyle = {
+    color: 'var(--primary-color)',
+    textDecoration: 'none',
+    fontWeight: 500
+};
 
 const MaintenanceList = () => {
     const [requests, setRequests] = useState([]);
@@ -169,12 +176,24 @@ const MaintenanceList = () => {
                                         <h3 style={{ margin: 0, fontSize: '1.125rem', marginBottom: '0.25rem' }}>{req.title}</h3>
                                         {req.house_number && (
                                             <span style={{ marginLeft: '1rem', fontSize: '0.75rem', fontWeight: 600, backgroundColor: 'var(--surface-dark)', color: 'white', padding: '0.125rem 0.5rem', borderRadius: 'var(--radius-sm)' }}>
-                                                House {req.house_number}
+                                                {req.house_id ? (
+                                                    <Link to={`/houses/${req.house_id}`} style={{ color: 'white', textDecoration: 'none' }}>
+                                                        House {req.house_number}
+                                                    </Link>
+                                                ) : (
+                                                    `House ${req.house_number}`
+                                                )}
                                             </span>
                                         )}
                                     </div>
                                     <div style={{ fontSize: '0.875rem', color: 'var(--text-primary)', marginBottom: '0.25rem', fontWeight: 500 }}>
-                                        {req.tenant_name}
+                                        {req.tenant ? (
+                                            <Link to={`/tenants/${req.tenant}`} style={entityLinkStyle}>
+                                                {req.tenant_name}
+                                            </Link>
+                                        ) : (
+                                            req.tenant_name
+                                        )}
                                     </div>
                                     <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.875rem', maxWidth: '600px' }}>
                                         {req.description}

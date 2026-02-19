@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Home, User, DollarSign, Wrench, Clock, CheckCircle, Plus, Pencil } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/format';
 import AddTenantModal from './AddTenantModal';
 import HouseModal from './HouseModal';
+
+const entityLinkStyle = {
+    color: 'var(--primary-color)',
+    textDecoration: 'none',
+    fontWeight: 500
+};
 
 const HouseDetail = () => {
     const { id } = useParams();
@@ -121,7 +127,11 @@ const HouseDetail = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-md)' }}>
                         <div>
                             <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Name</p>
-                            <p style={{ margin: '0.25rem 0 0', fontWeight: 600 }}>{house.current_tenant.name}</p>
+                            <p style={{ margin: '0.25rem 0 0', fontWeight: 600 }}>
+                                <Link to={`/tenants/${house.current_tenant.id}`} style={entityLinkStyle}>
+                                    {house.current_tenant.name}
+                                </Link>
+                            </p>
                         </div>
                         <div>
                             <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Email</p>
@@ -177,7 +187,15 @@ const HouseDetail = () => {
                             <tbody>
                                 {house.payment_history.map((payment) => (
                                     <tr key={payment.id} style={{ borderBottom: '1px solid var(--text-secondary)' }}>
-                                        <td style={{ padding: '0.75rem' }}>{payment.tenant_name}</td>
+                                        <td style={{ padding: '0.75rem' }}>
+                                            {payment.tenant_id ? (
+                                                <Link to={`/tenants/${payment.tenant_id}`} style={entityLinkStyle}>
+                                                    {payment.tenant_name}
+                                                </Link>
+                                            ) : (
+                                                payment.tenant_name
+                                            )}
+                                        </td>
                                         <td style={{ padding: '0.75rem' }}>{payment.payment_type}</td>
                                         <td style={{ padding: '0.75rem', fontWeight: 600 }}>{formatCurrency(payment.amount)}</td>
                                         <td style={{ padding: '0.75rem' }}>{formatDate(payment.date_due)}</td>
@@ -217,7 +235,16 @@ const HouseDetail = () => {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                                     <div>
                                         <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600 }}>{request.title}</h3>
-                                        <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Tenant: {request.tenant_name}</p>
+                                        <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                            Tenant:{' '}
+                                            {request.tenant_id ? (
+                                                <Link to={`/tenants/${request.tenant_id}`} style={entityLinkStyle}>
+                                                    {request.tenant_name}
+                                                </Link>
+                                            ) : (
+                                                request.tenant_name
+                                            )}
+                                        </p>
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                                         <span style={{
@@ -286,7 +313,11 @@ const HouseDetail = () => {
                         {house.tenant_history.map((tenant) => (
                             <div key={tenant.id} style={{ padding: 'var(--spacing-md)', border: '1px solid var(--text-secondary)', borderRadius: 'var(--radius-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div>
-                                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{tenant.name}</h3>
+                                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>
+                                        <Link to={`/tenants/${tenant.id}`} style={entityLinkStyle}>
+                                            {tenant.name}
+                                        </Link>
+                                    </h3>
                                     <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                                         {tenant.email} • {tenant.phone}
                                     </p>

@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Plus, Search, DollarSign, Calendar, CheckCircle, AlertCircle, Clock, Send } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/format';
 import AddPaymentModal from './AddPaymentModal';
+
+const entityLinkStyle = {
+    color: 'var(--primary-color)',
+    textDecoration: 'none',
+    fontWeight: 500
+};
 
 const PaymentList = () => {
     const [payments, setPayments] = useState([]);
@@ -193,7 +200,15 @@ const PaymentList = () => {
                                 </div>
                                 <div className="payment-details">
                                     <h3>{payment.payment_type}</h3>
-                                    <div className="tenant-name">{payment.tenant_name}</div>
+                                    <div className="tenant-name">
+                                        {payment.tenant ? (
+                                            <Link to={`/tenants/${payment.tenant}`} style={entityLinkStyle}>
+                                                {payment.tenant_name}
+                                            </Link>
+                                        ) : (
+                                            payment.tenant_name
+                                        )}
+                                    </div>
                                     <div className="payment-meta">
                                         <span>
                                             <Calendar size={14} /> Due: {formatDate(payment.date_due)}
@@ -206,7 +221,13 @@ const PaymentList = () => {
                                 <div className="payment-amount">{formatCurrency(payment.amount)}</div>
                                 {payment.house_number && (
                                     <div className="payment-house-info">
-                                        House {payment.house_number}
+                                        {payment.house_id ? (
+                                            <Link to={`/houses/${payment.house_id}`} style={entityLinkStyle}>
+                                                House {payment.house_number}
+                                            </Link>
+                                        ) : (
+                                            `House ${payment.house_number}`
+                                        )}
                                     </div>
                                 )}
                                 <div className="payment-status-badge" style={{ color: statusColor }}>

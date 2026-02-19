@@ -41,8 +41,8 @@ const HouseModal = ({ isOpen, onClose, onHouseSaved, house = null }) => {
         width: '100%',
         padding: '0.75rem',
         borderRadius: 'var(--radius-md)',
-        backgroundColor: 'var(--background-light)',
-        color: 'var(--text-primary)', // Force dark text
+        backgroundColor: 'var(--surface-color)',
+        color: 'var(--text-primary)',
         fontSize: '1rem'
     };
 

@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Search, Phone, Mail, FileText, Home, Calendar } from 'lucide-react';
 import AddTenantModal from './AddTenantModal';
 import { formatCurrency } from '../utils/format';
+
+const entityLinkStyle = {
+    color: 'var(--primary-color)',
+    textDecoration: 'none',
+    fontWeight: 500
+};
 
 const TenantList = () => {
     const [tenants, setTenants] = useState([]);
@@ -143,7 +149,20 @@ const TenantList = () => {
                                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Mail size={14} /> {tenant.email}</span>
                                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Phone size={14} /> {tenant.phone}</span>
                                     {tenant.house_number && (
-                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Home size={14} /> {tenant.house_number}</span>
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                            <Home size={14} />
+                                            {tenant.property ? (
+                                                <Link
+                                                    to={`/houses/${tenant.property}`}
+                                                    style={entityLinkStyle}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    House {tenant.house_number}
+                                                </Link>
+                                            ) : (
+                                                `House ${tenant.house_number}`
+                                            )}
+                                        </span>
                                     )}
                                     {tenant.rent_due_day && (
                                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Calendar size={14} /> Due day: {tenant.rent_due_day}</span>

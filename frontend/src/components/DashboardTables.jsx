@@ -1,5 +1,12 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { formatCurrency, formatDate } from '../utils/format';
+
+const entityLinkStyle = {
+    color: 'var(--primary-color)',
+    textDecoration: 'none',
+    fontWeight: 500
+};
 
 const STATUS_STYLES = {
     PAID: { backgroundColor: 'color-mix(in srgb, var(--success-color) 15%, transparent)', color: 'var(--success-color)' },
@@ -88,8 +95,24 @@ const DashboardTables = ({ data }) => {
                             <tbody>
                                 {data.recent_payments.map((payment) => (
                                     <tr key={payment.id} style={{ transition: 'background-color 0.15s' }}>
-                                        <TableCell>{payment.tenant_name}</TableCell>
-                                        <TableCell>{payment.property}</TableCell>
+                                        <TableCell>
+                                            {payment.tenant_id ? (
+                                                <Link to={`/tenants/${payment.tenant_id}`} style={entityLinkStyle}>
+                                                    {payment.tenant_name}
+                                                </Link>
+                                            ) : (
+                                                payment.tenant_name
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {payment.property_id ? (
+                                                <Link to={`/houses/${payment.property_id}`} style={entityLinkStyle}>
+                                                    House {payment.property}
+                                                </Link>
+                                            ) : (
+                                                payment.property
+                                            )}
+                                        </TableCell>
                                         <TableCell>{formatCurrency(payment.amount)}</TableCell>
                                         <TableCell>{formatDate(payment.date_due)}</TableCell>
                                         <TableCell>{payment.date_paid ? formatDate(payment.date_paid) : '-'}</TableCell>
@@ -124,8 +147,24 @@ const DashboardTables = ({ data }) => {
                             <tbody>
                                 {data.upcoming_payments.map((payment) => (
                                     <tr key={payment.id} style={{ transition: 'background-color 0.15s' }}>
-                                        <TableCell>{payment.tenant_name}</TableCell>
-                                        <TableCell>{payment.property}</TableCell>
+                                        <TableCell>
+                                            {payment.tenant_id ? (
+                                                <Link to={`/tenants/${payment.tenant_id}`} style={entityLinkStyle}>
+                                                    {payment.tenant_name}
+                                                </Link>
+                                            ) : (
+                                                payment.tenant_name
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {payment.property_id ? (
+                                                <Link to={`/houses/${payment.property_id}`} style={entityLinkStyle}>
+                                                    House {payment.property}
+                                                </Link>
+                                            ) : (
+                                                payment.property
+                                            )}
+                                        </TableCell>
                                         <TableCell>{formatCurrency(payment.amount)}</TableCell>
                                         <TableCell>{formatDate(payment.date_due)}</TableCell>
                                         <TableCell>
@@ -161,8 +200,24 @@ const DashboardTables = ({ data }) => {
                                 {data.active_maintenance.map((request) => (
                                     <tr key={request.id} style={{ transition: 'background-color 0.15s' }}>
                                         <TableCell>{request.title}</TableCell>
-                                        <TableCell>{request.tenant_name}</TableCell>
-                                        <TableCell>{request.property}</TableCell>
+                                        <TableCell>
+                                            {request.tenant_id ? (
+                                                <Link to={`/tenants/${request.tenant_id}`} style={entityLinkStyle}>
+                                                    {request.tenant_name}
+                                                </Link>
+                                            ) : (
+                                                request.tenant_name
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {request.property_id ? (
+                                                <Link to={`/houses/${request.property_id}`} style={entityLinkStyle}>
+                                                    House {request.property}
+                                                </Link>
+                                            ) : (
+                                                request.property
+                                            )}
+                                        </TableCell>
                                         <TableCell>
                                             <StatusBadge status={request.priority} />
                                         </TableCell>

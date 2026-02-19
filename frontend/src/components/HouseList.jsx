@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Home, Users, Pencil, AlertCircle, CheckCircle, Clock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import HouseModal from './HouseModal';
 import { formatCurrency } from '../utils/format';
 import { api } from '../utils/api';
+
+const entityLinkStyle = {
+    color: 'var(--primary-color)',
+    textDecoration: 'none',
+    fontWeight: 500
+};
 
 const HouseList = () => {
     const [houses, setHouses] = useState([]);
@@ -142,7 +148,19 @@ const HouseList = () => {
                             <div style={{ marginTop: 'var(--spacing-md)', padding: '0.5rem', backgroundColor: 'var(--surface-dark)', borderRadius: 'var(--radius-sm)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: house.latest_payment_status ? '0.25rem' : 0 }}>
                                     <Users size={14} color="var(--primary-color)" />
-                                    <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{house.current_tenant_name}</span>
+                                    <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                        {house.current_tenant_id ? (
+                                            <Link
+                                                to={`/tenants/${house.current_tenant_id}`}
+                                                style={entityLinkStyle}
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                {house.current_tenant_name}
+                                            </Link>
+                                        ) : (
+                                            house.current_tenant_name
+                                        )}
+                                    </span>
                                 </div>
                                 {house.latest_payment_status && (
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem' }}>

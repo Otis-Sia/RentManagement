@@ -30,7 +30,9 @@ class DashboardReportView(APIView):
         recent_payments = Payment.objects.select_related('tenant', 'tenant__property').order_by('-created_at')[:10]
         recent_payments_data = [{
             'id': p.id,
+            'tenant_id': p.tenant.id,
             'tenant_name': p.tenant.name,
+            'property_id': p.tenant.property.id if p.tenant.property else None,
             'property': f"{p.tenant.property.house_number}" if p.tenant.property else 'N/A',
             'amount': float(p.amount),
             'date_paid': p.date_paid.isoformat() if p.date_paid else None,
@@ -46,7 +48,9 @@ class DashboardReportView(APIView):
         ).select_related('tenant', 'tenant__property').order_by('date_due')[:10]
         upcoming_payments_data = [{
             'id': p.id,
+            'tenant_id': p.tenant.id,
             'tenant_name': p.tenant.name,
+            'property_id': p.tenant.property.id if p.tenant.property else None,
             'property': f"{p.tenant.property.house_number}" if p.tenant.property else 'N/A',
             'amount': float(p.amount),
             'date_due': p.date_due.isoformat(),
@@ -66,7 +70,9 @@ class DashboardReportView(APIView):
         active_maintenance_data = [{
             'id': m.id,
             'title': m.title,
+            'tenant_id': m.tenant.id,
             'tenant_name': m.tenant.name,
+            'property_id': m.tenant.property.id if m.tenant.property else None,
             'property': f"{m.tenant.property.house_number}" if m.tenant.property else 'N/A',
             'priority': m.priority,
             'status': m.status,

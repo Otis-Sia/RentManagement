@@ -197,6 +197,8 @@ const AddTenantModal = ({ isOpen, onClose, onTenantAdded, preselectedPropertyId 
                                 value={formData.phone}
                                 onChange={handleChange}
                                 required
+                                placeholder="+254xxxxxxxxx"
+                                title="Use international format: +254xxxxxxxxx"
                                 style={inputStyle}
                             />
                         </div>

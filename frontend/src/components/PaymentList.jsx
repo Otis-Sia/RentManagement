@@ -61,6 +61,38 @@ const PaymentList = () => {
 
     const [activeTab, setActiveTab] = useState('ALL');
 
+    const openWhatsAppRequest = ({
+        tenantName,
+        tenantPhone,
+        paymentType,
+        amount,
+        dueDate,
+        houseNumber,
+        paymentCount
+    }) => {
+        const phone = (tenantPhone || '').replace(/[^\d]/g, '');
+        if (!phone) {
+            alert(`No phone number available for ${tenantName}.`);
+            return;
+        }
+
+        const message = [
+            `Hello ${tenantName},`,
+            ``,
+            `This is a payment reminder regarding your outstanding ${paymentType || 'rent'} payment${paymentCount > 1 ? 's' : ''} of ${formatCurrency(amount)}.`,
+            ``,
+            `*Reason:* Payment request for outstanding ${paymentType || 'rent'} payment${paymentCount > 1 ? 's' : ''}${houseNumber ? ` — House ${houseNumber}` : ''}`,
+            `*Due Date:* ${formatDate(dueDate)}`,
+            `*Payment Type:* ${paymentType || 'RENT'}`,
+            `*Amount:* ${formatCurrency(amount)}`,
+            ``,
+            `Please arrange payment at your earliest convenience. Thank you.`
+        ].join('\n');
+
+        const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+        window.open(url, '_blank');
+    };
+
     const filteredPayments = payments.filter(payment => {
         // First apply tab filter
         if (activeTab === 'LATE') {
@@ -80,6 +112,43 @@ const PaymentList = () => {
     });
 
     if (loading) return <div>Loading payments...</div>;
+
+    const groupedLatePayments = Object.values(
+        filteredPayments.reduce((acc, payment) => {
+            const key = payment.tenant || payment.tenant_name;
+            if (!acc[key]) {
+                acc[key] = {
+                    id: key,
+                    tenant: payment.tenant,
+                    tenant_name: payment.tenant_name,
+                    tenant_phone: payment.tenant_phone,
+                    house_id: payment.house_id,
+                    house_number: payment.house_number,
+                    amount: 0,
+                    earliest_due_date: payment.date_due,
+                    payment_types: new Set(),
+                    payment_count: 0,
+                    has_failed: false,
+                };
+            }
+
+            acc[key].amount += parseFloat(payment.amount || 0);
+            acc[key].payment_count += 1;
+            acc[key].payment_types.add(payment.payment_type);
+            if (!acc[key].earliest_due_date || new Date(payment.date_due) < new Date(acc[key].earliest_due_date)) {
+                acc[key].earliest_due_date = payment.date_due;
+            }
+            if (payment.status === 'FAILED') {
+                acc[key].has_failed = true;
+            }
+
+            return acc;
+        }, {})
+    ).map(group => ({
+        ...group,
+        payment_type: Array.from(group.payment_types).join(', '),
+        status: group.has_failed ? 'FAILED' : 'LATE',
+    }));
 
     const failedPayments = payments.filter(p => p.status === 'FAILED');
 
@@ -185,7 +254,7 @@ const PaymentList = () => {
             </div>
 
             <div className="payment-list">
-                {filteredPayments.map(payment => {
+                {(activeTab === 'LATE' ? groupedLatePayments : filteredPayments).map(payment => {
                     const StatusIcon = getStatusIcon(payment.status);
                     const statusColor = getStatusColor(payment.status);
 
@@ -199,7 +268,7 @@ const PaymentList = () => {
                                     <DollarSign size={24} />
                                 </div>
                                 <div className="payment-details">
-                                    <h3>{payment.payment_type}</h3>
+                                    <h3>{activeTab === 'LATE' ? `${payment.payment_count} payment(s)` : payment.payment_type}</h3>
                                     <div className="tenant-name">
                                         {payment.tenant ? (
                                             <Link to={`/tenants/${payment.tenant}`} style={entityLinkStyle}>
@@ -211,7 +280,7 @@ const PaymentList = () => {
                                     </div>
                                     <div className="payment-meta">
                                         <span>
-                                            <Calendar size={14} /> Due: {formatDate(payment.date_due)}
+                                            <Calendar size={14} /> Due: {formatDate(activeTab === 'LATE' ? payment.earliest_due_date : payment.date_due)}
                                         </span>
                                     </div>
                                 </div>
@@ -236,23 +305,15 @@ const PaymentList = () => {
                                 </div>
                                 {(payment.status === 'LATE' || payment.status === 'FAILED') && (
                                     <button
-                                        onClick={() => {
-                                            const phone = (payment.tenant_phone || '').replace(/[^\d]/g, '');
-                                            const message = [
-                                                `Hello ${payment.tenant_name},`,
-                                                ``,
-                                                `This is a payment reminder regarding your outstanding ${payment.payment_type} payment of ${formatCurrency(payment.amount)}.`,
-                                                ``,
-                                                `*Reason:* Payment request for ${payment.payment_type}${payment.house_number ? ` — House ${payment.house_number}` : ''}`,
-                                                `*Due Date:* ${formatDate(payment.date_due)}`,
-                                                `*Payment Type:* ${payment.payment_type}`,
-                                                `*Amount:* ${formatCurrency(payment.amount)}`,
-                                                ``,
-                                                `Please arrange payment at your earliest convenience. Thank you.`
-                                            ].join('\n');
-                                            const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-                                            window.open(url, '_blank');
-                                        }}
+                                        onClick={() => openWhatsAppRequest({
+                                            tenantName: payment.tenant_name,
+                                            tenantPhone: payment.tenant_phone,
+                                            paymentType: payment.payment_type,
+                                            amount: payment.amount,
+                                            dueDate: activeTab === 'LATE' ? payment.earliest_due_date : payment.date_due,
+                                            houseNumber: payment.house_number,
+                                            paymentCount: activeTab === 'LATE' ? payment.payment_count : 1,
+                                        })}
                                         style={{
                                             marginTop: '8px',
                                             padding: '6px 12px',
@@ -284,7 +345,7 @@ const PaymentList = () => {
                         </div>
                     );
                 })}
-                {filteredPayments.length === 0 && (
+                {(activeTab === 'LATE' ? groupedLatePayments.length : filteredPayments.length) === 0 && (
                     <div className="payment-empty-state">
                         No payments found.
                     </div>

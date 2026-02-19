@@ -12,6 +12,7 @@ NC='\033[0m' # No Color
 
 FRONTEND_URL="http://192.168.100.242"
 BROWSER_PID=""
+BROWSER_PROFILE_DIR=""
 
 # Resolve default browser executable from xdg desktop entry
 get_default_browser_command() {
@@ -55,13 +56,15 @@ open_browser_window() {
     if [ -n "$browser_cmd" ] && command -v "$browser_cmd" >/dev/null 2>&1; then
         case "$browser_cmd" in
             *chrome*|*chromium*|*brave*|*microsoft-edge*|*msedge*)
-                "$browser_cmd" --new-window --app="$FRONTEND_URL" >/dev/null 2>&1 &
+                BROWSER_PROFILE_DIR=$(mktemp -d)
+                "$browser_cmd" --user-data-dir="$BROWSER_PROFILE_DIR" --new-window --app="$FRONTEND_URL" >/dev/null 2>&1 &
                 BROWSER_PID=$!
                 echo -e "${GREEN}✓ Opened dedicated app window (${browser_cmd})${NC}"
                 return 0
                 ;;
             *firefox*)
-                "$browser_cmd" --new-window "$FRONTEND_URL" >/dev/null 2>&1 &
+                BROWSER_PROFILE_DIR=$(mktemp -d)
+                "$browser_cmd" -profile "$BROWSER_PROFILE_DIR" -new-window "$FRONTEND_URL" >/dev/null 2>&1 &
                 BROWSER_PID=$!
                 echo -e "${GREEN}✓ Opened new browser window (${browser_cmd})${NC}"
                 return 0
@@ -80,8 +83,16 @@ cleanup() {
     echo -e "${YELLOW}Stopping servers...${NC}"
 
     if [ -n "$BROWSER_PID" ] && ps -p "$BROWSER_PID" >/dev/null 2>&1; then
-        kill "$BROWSER_PID" 2>/dev/null
-        echo -e "${GREEN}✓ Browser window closed${NC}"
+        kill -TERM "$BROWSER_PID" 2>/dev/null
+        sleep 1
+        if ps -p "$BROWSER_PID" >/dev/null 2>&1; then
+            kill -9 "$BROWSER_PID" 2>/dev/null
+        fi
+        echo -e "${GREEN}✓ Browser window and tab closed${NC}"
+    fi
+
+    if [ -n "$BROWSER_PROFILE_DIR" ] && [ -d "$BROWSER_PROFILE_DIR" ]; then
+        rm -rf "$BROWSER_PROFILE_DIR"
     fi
 
     kill $(jobs -p) 2>/dev/null

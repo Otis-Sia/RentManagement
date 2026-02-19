@@ -43,7 +43,9 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
         try {
             const response = await fetch('/api/payments/');
             const data = await response.json();
-            setArrearsPayments(data.filter(payment => payment.status === 'LATE' || payment.status === 'FAILED'));
+            setArrearsPayments(data.filter(
+                payment => payment.status === 'LATE' || payment.status === 'FAILED' || payment.status === 'SEVERE'
+            ));
         } catch (err) {
             console.error('Error fetching arrears payments:', err);
         }
@@ -118,26 +120,28 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
             return;
         }
 
-        if (!formData.date_paid) {
-            setCalculatedStatus('PENDING');
-            return;
-        }
-
         const due = new Date(formData.date_due);
-        const paid = new Date(formData.date_paid);
+        const effectiveDate = formData.date_paid ? new Date(formData.date_paid) : new Date();
 
         // Calculate difference in days
-        const diffTime = paid - due;
+        const diffTime = effectiveDate - due;
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
         if (diffDays <= 0) {
-            setCalculatedStatus('PAID');
-        } else if (diffDays > 30) {
-            setCalculatedStatus('FAILED');
-        } else {
+            setCalculatedStatus(formData.date_paid ? 'PAID' : 'PENDING');
+        } else if (diffDays > 35) {
+            const failedLikeCount = arrearsPayments.filter(payment =>
+                parseInt(payment.tenant, 10) === parseInt(formData.tenant, 10) &&
+                (payment.status === 'FAILED' || payment.status === 'SEVERE')
+            ).length;
+
+            setCalculatedStatus(failedLikeCount >= 3 ? 'SEVERE' : 'FAILED');
+        } else if (diffDays > 5) {
             setCalculatedStatus('LATE');
+        } else {
+            setCalculatedStatus('PENDING');
         }
-    }, [formData.date_due, formData.date_paid]);
+    }, [formData.date_due, formData.date_paid, formData.tenant, arrearsPayments]);
 
     if (!isOpen) return null;
 
@@ -291,14 +295,14 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                                 color:
                                     calculatedStatus === 'PAID' ? 'var(--success-color)' :
                                         calculatedStatus === 'LATE' ? 'var(--warning-color)' :
-                                            calculatedStatus === 'FAILED' ? 'var(--danger-color)' :
+                                            (calculatedStatus === 'FAILED' || calculatedStatus === 'SEVERE') ? 'var(--danger-color)' :
                                                 'var(--text-secondary)',
                                 fontWeight: 600
                             }}>
                                 {calculatedStatus}
-                                {calculatedStatus === 'FAILED' && (
+                                {(calculatedStatus === 'FAILED' || calculatedStatus === 'SEVERE') && (
                                     <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--danger-color)', marginTop: '0.25rem' }}>
-                                        ⚠️ Payment is over 30 days late!
+                                        ⚠️ Payment is over 35 days late!
                                     </span>
                                 )}
                             </div>

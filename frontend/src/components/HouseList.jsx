@@ -219,12 +219,13 @@ const HouseList = () => {
                                             {house.latest_payment_status.status === 'PAID' && <CheckCircle size={12} color="var(--success-color)" />}
                                             {house.latest_payment_status.status === 'LATE' && <AlertCircle size={12} color="var(--warning-color)" />}
                                             {house.latest_payment_status.status === 'FAILED' && <AlertCircle size={12} color="var(--danger-color)" />}
+                                            {house.latest_payment_status.status === 'SEVERE' && <AlertCircle size={12} color="var(--danger-color)" />}
                                             {house.latest_payment_status.status === 'PENDING' && <Clock size={12} color="var(--accent-color)" />}
 
                                             <span style={{
                                                 color: house.latest_payment_status.status === 'PAID' ? 'var(--success-color)' :
                                                     house.latest_payment_status.status === 'LATE' ? 'var(--warning-color)' :
-                                                        house.latest_payment_status.status === 'FAILED' ? 'var(--danger-color)' :
+                                                        (house.latest_payment_status.status === 'FAILED' || house.latest_payment_status.status === 'SEVERE') ? 'var(--danger-color)' :
                                                             'var(--text-secondary)',
                                                 fontWeight: 600
                                             }}>

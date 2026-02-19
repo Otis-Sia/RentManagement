@@ -43,6 +43,7 @@ const PaymentList = () => {
             case 'PENDING': return 'var(--accent-color)';
             case 'LATE': return 'var(--warning-color)';
             case 'FAILED': return 'var(--danger-color)';
+            case 'SEVERE': return 'var(--danger-color)';
             default: return 'var(--text-secondary)';
         }
     };
@@ -53,6 +54,7 @@ const PaymentList = () => {
             case 'PENDING': return Clock;
             case 'LATE': return AlertCircle;
             case 'FAILED': return AlertCircle;
+            case 'SEVERE': return AlertCircle;
             default: return AlertCircle;
         }
     };
@@ -107,7 +109,7 @@ const PaymentList = () => {
     const filteredPayments = payments.filter(payment => {
         // First apply tab filter
         if (activeTab === 'LATE') {
-            if (payment.status !== 'LATE' && payment.status !== 'FAILED') {
+            if (payment.status !== 'LATE' && payment.status !== 'FAILED' && payment.status !== 'SEVERE') {
                 return false;
             }
         }
@@ -140,6 +142,7 @@ const PaymentList = () => {
                     payment_types: new Set(),
                     payment_count: 0,
                     has_failed: false,
+                    has_severe: false,
                     arrears_items: [],
                 };
             }
@@ -158,24 +161,28 @@ const PaymentList = () => {
             if (payment.status === 'FAILED') {
                 acc[key].has_failed = true;
             }
+            if (payment.status === 'SEVERE') {
+                acc[key].has_severe = true;
+            }
 
             return acc;
         }, {})
     ).map(group => ({
         ...group,
         payment_type: Array.from(group.payment_types).join(', '),
-        status: group.has_failed ? 'FAILED' : 'LATE',
+        status: group.has_severe ? 'SEVERE' : group.has_failed ? 'FAILED' : 'LATE',
     }));
 
     const failedPayments = payments.filter(p => p.status === 'FAILED');
+    const severePayments = payments.filter(p => p.status === 'SEVERE');
 
     return (
         <div className="container payment-container">
-            {failedPayments.length > 0 && (
+            {(failedPayments.length > 0 || severePayments.length > 0) && (
                 <div className="payment-alert">
                     <AlertCircle size={24} />
                     <div>
-                        <strong>Action Required:</strong> {failedPayments.length} payment(s) have failed (over 30 days late).
+                        <strong>Action Required:</strong> {failedPayments.length} failed and {severePayments.length} severe payment(s) are over 35 days late.
                     </div>
                 </div>
             )}
@@ -226,7 +233,7 @@ const PaymentList = () => {
                     }}
                 >
                     Late/Failed Payments
-                    {payments.filter(p => p.status === 'LATE' || p.status === 'FAILED').length > 0 && (
+                    {payments.filter(p => p.status === 'LATE' || p.status === 'FAILED' || p.status === 'SEVERE').length > 0 && (
                         <span style={{
                             backgroundColor: 'var(--danger-color)',
                             color: 'white',
@@ -239,7 +246,7 @@ const PaymentList = () => {
                             fontSize: '0.75rem',
                             fontWeight: 'bold'
                         }}>
-                            {payments.filter(p => p.status === 'LATE' || p.status === 'FAILED').length}
+                            {payments.filter(p => p.status === 'LATE' || p.status === 'FAILED' || p.status === 'SEVERE').length}
                         </span>
                     )}
                 </button>
@@ -266,6 +273,7 @@ const PaymentList = () => {
                         <option value="PENDING">Pending</option>
                         <option value="LATE">Late</option>
                         <option value="FAILED">Failed</option>
+                        <option value="SEVERE">Severe</option>
                     </select>
                 )}
             </div>
@@ -320,7 +328,7 @@ const PaymentList = () => {
                                     <StatusIcon size={14} />
                                     {payment.status}
                                 </div>
-                                {(payment.status === 'LATE' || payment.status === 'FAILED') && (
+                                {(payment.status === 'LATE' || payment.status === 'FAILED' || payment.status === 'SEVERE') && (
                                     <button
                                         onClick={() => openWhatsAppRequest({
                                             tenantName: payment.tenant_name,

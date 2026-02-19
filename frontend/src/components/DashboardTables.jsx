@@ -13,6 +13,7 @@ const STATUS_STYLES = {
     PENDING: { backgroundColor: 'color-mix(in srgb, var(--accent-color) 15%, transparent)', color: 'var(--accent-color)' },
     LATE: { backgroundColor: 'color-mix(in srgb, var(--danger-color) 15%, transparent)', color: 'var(--danger-color)' },
     FAILED: { backgroundColor: 'color-mix(in srgb, #6b7280 15%, transparent)', color: '#6b7280' },
+    SEVERE: { backgroundColor: 'color-mix(in srgb, var(--danger-color) 15%, transparent)', color: 'var(--danger-color)' },
     OPEN: { backgroundColor: 'color-mix(in srgb, var(--danger-color) 15%, transparent)', color: 'var(--danger-color)' },
     IN_PROGRESS: { backgroundColor: 'color-mix(in srgb, var(--accent-color) 15%, transparent)', color: 'var(--accent-color)' },
     COMPLETED: { backgroundColor: 'color-mix(in srgb, var(--success-color) 15%, transparent)', color: 'var(--success-color)' },

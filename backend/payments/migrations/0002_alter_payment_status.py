@@ -1,0 +1,26 @@
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('payments', '0001_initial'),
+    ]
+
+    operations = [
+        migrations.AlterField(
+            model_name='payment',
+            name='status',
+            field=models.CharField(
+                choices=[
+                    ('PENDING', 'Pending'),
+                    ('PAID', 'Paid'),
+                    ('LATE', 'Late'),
+                    ('FAILED', 'Failed'),
+                    ('SEVERE', 'Severe'),
+                ],
+                default='PENDING',
+                max_length=20,
+            ),
+        ),
+    ]

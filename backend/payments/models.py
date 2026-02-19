@@ -14,6 +14,7 @@ class Payment(models.Model):
         ('PAID', 'Paid'),
         ('LATE', 'Late'),
         ('FAILED', 'Failed'),
+        ('SEVERE', 'Severe'),
     ]
 
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='payments')

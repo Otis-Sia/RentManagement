@@ -18,7 +18,7 @@ class DashboardReportView(APIView):
 
         # Outstanding Balances (all unpaid/overdue payments)
         outstanding_balance = Payment.objects.filter(
-            status__in=['PENDING', 'LATE', 'FAILED', 'SEVERE']
+            status__in=['PENDING', 'LATE', 'FAILED', 'SEVERE', 'DEFAULTED']
         ).aggregate(total=Sum('amount'))['total'] or 0
 
         # Total Maintenance Costs (completed requests)

@@ -14,7 +14,8 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
         payment_type: 'RENT',
         // status is removed from initial state as it's calculated
         transaction_id: '',
-        clear_arrears_payment_id: ''
+        clear_arrears_payment_id: '',
+        all_inclusive: false
     });
     const [calculatedStatus, setCalculatedStatus] = useState('PENDING');
     const [loading, setLoading] = useState(false);
@@ -44,7 +45,7 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
             const response = await fetch('/api/payments/');
             const data = await response.json();
             setArrearsPayments(data.filter(
-                payment => payment.status === 'LATE' || payment.status === 'FAILED' || payment.status === 'SEVERE'
+                payment => payment.status === 'LATE' || payment.status === 'FAILED' || payment.status === 'SEVERE' || payment.status === 'DEFAULTED'
             ));
         } catch (err) {
             console.error('Error fetching arrears payments:', err);
@@ -102,7 +103,29 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
             setFormData(prev => ({
                 ...prev,
                 [name]: value,
+                all_inclusive: value ? false : prev.all_inclusive,
                 date_paid: value && !prev.date_paid ? today : prev.date_paid
+            }));
+            return;
+        }
+
+        if (name === 'all_inclusive') {
+            const checked = e.target.checked;
+            const today = new Date().toISOString().split('T')[0];
+            setFormData(prev => ({
+                ...prev,
+                all_inclusive: checked,
+                clear_arrears_payment_id: checked ? '' : prev.clear_arrears_payment_id,
+                date_paid: checked && !prev.date_paid ? today : prev.date_paid
+            }));
+            return;
+        }
+
+        if (name === 'payment_type') {
+            setFormData(prev => ({
+                ...prev,
+                payment_type: value,
+                all_inclusive: value === 'RENT' ? prev.all_inclusive : false
             }));
             return;
         }
@@ -129,15 +152,37 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 
         if (diffDays <= 0) {
             setCalculatedStatus(formData.date_paid ? 'PAID' : 'PENDING');
+        } else if (formData.date_paid && diffDays <= 5) {
+            setCalculatedStatus('PAID');
         } else if (diffDays > 35) {
-            const failedLikeCount = arrearsPayments.filter(payment =>
-                parseInt(payment.tenant, 10) === parseInt(formData.tenant, 10) &&
-                (payment.status === 'FAILED' || payment.status === 'SEVERE')
-            ).length;
+            if (formData.payment_type === 'RENT') {
+                const rentFailedCount = arrearsPayments.filter(payment =>
+                    parseInt(payment.tenant, 10) === parseInt(formData.tenant, 10) &&
+                    payment.payment_type === 'RENT' &&
+                    payment.status === 'FAILED'
+                ).length;
 
-            setCalculatedStatus(failedLikeCount >= 3 ? 'SEVERE' : 'FAILED');
+                setCalculatedStatus(rentFailedCount >= 1 ? 'SEVERE' : 'FAILED');
+            } else {
+                setCalculatedStatus('FAILED');
+            }
         } else if (diffDays > 5) {
-            setCalculatedStatus('LATE');
+            const hasExistingLate = arrearsPayments.some(payment =>
+                parseInt(payment.tenant, 10) === parseInt(formData.tenant, 10) && payment.status === 'LATE'
+            );
+
+            if (!hasExistingLate) {
+                setCalculatedStatus('LATE');
+            } else if (formData.payment_type === 'RENT') {
+                const rentFailedCount = arrearsPayments.filter(payment =>
+                    parseInt(payment.tenant, 10) === parseInt(formData.tenant, 10) &&
+                    payment.payment_type === 'RENT' &&
+                    payment.status === 'FAILED'
+                ).length;
+                setCalculatedStatus(rentFailedCount >= 1 ? 'SEVERE' : 'FAILED');
+            } else {
+                setCalculatedStatus('FAILED');
+            }
         } else {
             setCalculatedStatus('PENDING');
         }
@@ -165,7 +210,8 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                 payment_type: formData.payment_type,
                 // status is handled by backend
                 transaction_id: formData.transaction_id,
-                clear_arrears_payment_id: formData.clear_arrears_payment_id ? parseInt(formData.clear_arrears_payment_id, 10) : null
+                clear_arrears_payment_id: formData.clear_arrears_payment_id ? parseInt(formData.clear_arrears_payment_id, 10) : null,
+                all_inclusive: formData.payment_type === 'RENT' ? formData.all_inclusive : false
             };
 
             const response = await fetch('/api/payments/', {
@@ -193,7 +239,8 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                 date_paid: '',
                 payment_type: 'RENT',
                 transaction_id: '',
-                clear_arrears_payment_id: ''
+                clear_arrears_payment_id: '',
+                all_inclusive: false
             });
         } catch (err) {
             console.error('Error adding payment:', err);
@@ -355,6 +402,7 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                                 name="clear_arrears_payment_id"
                                 value={formData.clear_arrears_payment_id}
                                 onChange={handleChange}
+                                disabled={formData.payment_type === 'RENT' && formData.all_inclusive}
                                 style={inputStyle}
                             >
                                 <option value="">No arrears payment selected</option>
@@ -365,6 +413,18 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                                 ))}
                             </select>
                         </div>
+                    )}
+
+                    {formData.tenant && formData.payment_type === 'RENT' && (
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500 }}>
+                            <input
+                                type="checkbox"
+                                name="all_inclusive"
+                                checked={formData.all_inclusive}
+                                onChange={handleChange}
+                            />
+                            Make this payment all-inclusive (auto-clear past arrears if no specific arrears is selected)
+                        </label>
                     )}
 
                     <div>

@@ -85,7 +85,7 @@ class PaymentStatusRulesTests(TestCase):
 		payment = self._create_payment(payment_type='RENT', days_overdue=40, with_date_paid=False)
 		self.assertEqual(payment.status, 'SEVERE')
 
-	def test_non_rent_over_thirty_five_days_stays_late(self):
+	def test_non_rent_over_thirty_five_days_is_failed(self):
 		for index in range(5):
 			Payment.objects.create(
 				tenant=self.tenant,
@@ -96,9 +96,9 @@ class PaymentStatusRulesTests(TestCase):
 			)
 
 		payment = self._create_payment(payment_type='FEE', days_overdue=40, with_date_paid=False)
-		self.assertEqual(payment.status, 'LATE')
+		self.assertEqual(payment.status, 'FAILED')
 
-	def test_non_rent_late_not_forced_to_failed_by_one_late_cap(self):
+	def test_non_rent_late_with_existing_late_becomes_failed(self):
 		Payment.objects.create(
 			tenant=self.tenant,
 			amount='500.00',
@@ -108,4 +108,75 @@ class PaymentStatusRulesTests(TestCase):
 		)
 
 		payment = self._create_payment(payment_type='OTHER', days_overdue=12, with_date_paid=False)
-		self.assertEqual(payment.status, 'LATE')
+		self.assertEqual(payment.status, 'FAILED')
+
+	def test_all_inclusive_clears_oldest_arrears_first(self):
+		older_arrears = Payment.objects.create(
+			tenant=self.tenant,
+			amount='1000.00',
+			date_due=date.today() - timedelta(days=90),
+			payment_type='RENT',
+			status='FAILED',
+		)
+		recent_arrears = Payment.objects.create(
+			tenant=self.tenant,
+			amount='800.00',
+			date_due=date.today() - timedelta(days=60),
+			payment_type='RENT',
+			status='LATE',
+		)
+
+		serializer = PaymentSerializer(data={
+			'tenant': self.tenant.id,
+			'amount': '1200.00',
+			'date_due': date.today(),
+			'date_paid': date.today(),
+			'payment_type': 'RENT',
+			'all_inclusive': True,
+		})
+
+		self.assertTrue(serializer.is_valid(), serializer.errors)
+		serializer.save()
+
+		older_arrears.refresh_from_db()
+		recent_arrears.refresh_from_db()
+
+		self.assertEqual(older_arrears.status, 'PAID')
+		self.assertEqual(str(recent_arrears.amount), '600.00')
+		self.assertEqual(recent_arrears.status, 'LATE')
+
+	def test_all_inclusive_with_specific_arrears_selected_uses_selected_only(self):
+		first_arrears = Payment.objects.create(
+			tenant=self.tenant,
+			amount='900.00',
+			date_due=date.today() - timedelta(days=80),
+			payment_type='RENT',
+			status='FAILED',
+		)
+		second_arrears = Payment.objects.create(
+			tenant=self.tenant,
+			amount='700.00',
+			date_due=date.today() - timedelta(days=50),
+			payment_type='RENT',
+			status='LATE',
+		)
+
+		serializer = PaymentSerializer(data={
+			'tenant': self.tenant.id,
+			'amount': '900.00',
+			'date_due': date.today(),
+			'date_paid': date.today(),
+			'payment_type': 'RENT',
+			'all_inclusive': True,
+			'clear_arrears_payment_id': first_arrears.id,
+		})
+
+		self.assertTrue(serializer.is_valid(), serializer.errors)
+		serializer.save()
+
+		first_arrears.refresh_from_db()
+		second_arrears.refresh_from_db()
+
+		self.assertEqual(first_arrears.status, 'PAID')
+		self.assertEqual(second_arrears.status, 'LATE')
+		self.assertEqual(str(second_arrears.amount), '700.00')

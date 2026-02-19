@@ -15,9 +15,10 @@ const COLORS = {
 const PAYMENT_STATUS_COLORS = {
     PAID: COLORS.success,
     PENDING: COLORS.warning,
-    LATE: COLORS.danger,
-    FAILED: '#6b7280',
-    SEVERE: COLORS.danger
+    LATE: COLORS.warning,
+    FAILED: COLORS.accent,
+    SEVERE: COLORS.danger,
+    DEFAULTED: COLORS.purple
 };
 
 const MAINTENANCE_STATUS_COLORS = {

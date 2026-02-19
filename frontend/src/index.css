@@ -792,6 +792,29 @@ table {
   margin-bottom: var(--spacing-xl);
 }
 
+.house-subtabs {
+  display: flex;
+  gap: var(--spacing-lg);
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: var(--spacing-lg);
+}
+
+.house-subtab-button {
+  padding: 0.625rem 0;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.house-subtab-button.active {
+  border-bottom-color: var(--primary-color);
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
 .house-filters {
   display: flex;
   flex-wrap: wrap;
@@ -830,6 +853,38 @@ table {
   display: grid;
   gap: var(--spacing-md);
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+}
+
+.building-grid {
+  display: grid;
+  gap: var(--spacing-md);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+}
+
+.building-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.building-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.building-metrics {
+  display: grid;
+  gap: var(--spacing-sm);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--border-color);
+}
+
+.building-units {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
 }
 
 .house-card {
@@ -914,6 +969,10 @@ table {
 
 /* Mobile Adjustments for Houses */
 @media screen and (max-width: 768px) {
+  .house-subtabs {
+    gap: var(--spacing-md);
+  }
+
   .house-filters {
     flex-direction: column;
   }
@@ -926,11 +985,13 @@ table {
 
   .house-grid {
     grid-template-columns: 1fr;
-    /* Stack cards on mobile */
+  }
+
+  .building-grid {
+    grid-template-columns: 1fr;
   }
 
   .house-details-grid {
     grid-template-columns: 1fr 1fr;
-    /* 2 columns on mobile for details */
   }
 }

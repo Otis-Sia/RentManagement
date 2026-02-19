@@ -10,17 +10,87 @@ BLUE='\033[0;34m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
+FRONTEND_URL="http://192.168.100.242"
+BROWSER_PID=""
+
+# Resolve default browser executable from xdg desktop entry
+get_default_browser_command() {
+    if ! command -v xdg-settings >/dev/null 2>&1; then
+        return 1
+    fi
+
+    local desktop_entry
+    desktop_entry=$(xdg-settings get default-web-browser 2>/dev/null)
+    if [ -z "$desktop_entry" ]; then
+        return 1
+    fi
+
+    local desktop_file=""
+    if [ -f "$HOME/.local/share/applications/$desktop_entry" ]; then
+        desktop_file="$HOME/.local/share/applications/$desktop_entry"
+    elif [ -f "/usr/share/applications/$desktop_entry" ]; then
+        desktop_file="/usr/share/applications/$desktop_entry"
+    fi
+
+    if [ -z "$desktop_file" ]; then
+        return 1
+    fi
+
+    local exec_line
+    exec_line=$(grep -m1 '^Exec=' "$desktop_file")
+    if [ -z "$exec_line" ]; then
+        return 1
+    fi
+
+    exec_line=${exec_line#Exec=}
+    echo "$exec_line" | sed -E 's/%[a-zA-Z]//g' | awk '{print $1}' | sed 's/^"//; s/"$//'
+}
+
+open_browser_window() {
+    echo -e "${YELLOW}Opening system in a dedicated browser window...${NC}"
+
+    local browser_cmd
+    browser_cmd=$(get_default_browser_command)
+
+    if [ -n "$browser_cmd" ] && command -v "$browser_cmd" >/dev/null 2>&1; then
+        case "$browser_cmd" in
+            *chrome*|*chromium*|*brave*|*microsoft-edge*|*msedge*)
+                "$browser_cmd" --new-window --app="$FRONTEND_URL" >/dev/null 2>&1 &
+                BROWSER_PID=$!
+                echo -e "${GREEN}✓ Opened dedicated app window (${browser_cmd})${NC}"
+                return 0
+                ;;
+            *firefox*)
+                "$browser_cmd" --new-window "$FRONTEND_URL" >/dev/null 2>&1 &
+                BROWSER_PID=$!
+                echo -e "${GREEN}✓ Opened new browser window (${browser_cmd})${NC}"
+                return 0
+                ;;
+        esac
+    fi
+
+    echo -e "${RED}Dedicated window mode is not supported by your default browser setup.${NC}"
+    echo -e "${RED}Set a supported default browser (Chromium/Chrome/Brave/Edge/Firefox) and retry.${NC}"
+    return 1
+}
+
 # Function to handle script termination
 cleanup() {
     echo ""
     echo -e "${YELLOW}Stopping servers...${NC}"
+
+    if [ -n "$BROWSER_PID" ] && ps -p "$BROWSER_PID" >/dev/null 2>&1; then
+        kill "$BROWSER_PID" 2>/dev/null
+        echo -e "${GREEN}✓ Browser window closed${NC}"
+    fi
+
     kill $(jobs -p) 2>/dev/null
     echo -e "${GREEN}Cleanup complete${NC}"
     exit
 }
 
 # Trap SIGINT (Ctrl+C) and call cleanup
-trap cleanup SIGINT
+trap cleanup SIGINT SIGTERM
 
 echo -e "${BLUE}======================================${NC}"
 echo -e "${BLUE} Rent Management System - Network Mode${NC}"
@@ -129,9 +199,9 @@ echo -e "${GREEN}  System Running on Network!${NC}"
 echo -e "${GREEN}======================================${NC}"
 echo ""
 echo -e "${BLUE}Access URLs:${NC}"
-echo -e "  📱 Frontend:  ${GREEN}http://192.168.100.242${NC}"
-echo -e "  🔌 Backend:   ${GREEN}http://192.168.100.242/api/${NC}"
-echo -e "  ⚙️  Admin:    ${GREEN}http://192.168.100.242/admin/${NC}"
+echo -e "  📱 Frontend:  ${GREEN}${FRONTEND_URL}${NC}"
+echo -e "  🔌 Backend:   ${GREEN}${FRONTEND_URL}/api/${NC}"
+echo -e "  ⚙️  Admin:    ${GREEN}${FRONTEND_URL}/admin/${NC}"
 echo ""
 echo -e "${BLUE}Features:${NC}"
 echo "  ✓ Local network broadcasting"
@@ -141,11 +211,18 @@ echo "  ✓ Offline support with service worker"
 echo ""
 echo -e "${YELLOW}How to Access:${NC}"
 echo "  1. From any device on your network"
-echo "  2. Open browser and go to: http://192.168.100.242"
+echo "  2. Open browser and go to: ${FRONTEND_URL}"
 echo "  3. Install as PWA for best experience"
 echo ""
+
+if ! open_browser_window; then
+    cleanup
+fi
+echo ""
+
 echo -e "${YELLOW}Press Ctrl+C to stop all servers${NC}"
 echo ""
 
 # Wait for backend process
 wait $BACKEND_PID
+cleanup

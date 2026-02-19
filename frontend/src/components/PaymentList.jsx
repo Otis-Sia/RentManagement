@@ -68,7 +68,8 @@ const PaymentList = () => {
         amount,
         dueDate,
         houseNumber,
-        paymentCount
+        paymentCount,
+        arrearsItems = []
     }) => {
         const phone = (tenantPhone || '').replace(/[^\d]/g, '');
         if (!phone) {
@@ -76,15 +77,25 @@ const PaymentList = () => {
             return;
         }
 
+        const hasArrearsItems = arrearsItems.length > 0;
+        const arrearsLines = hasArrearsItems
+            ? arrearsItems.map((item, index) => (
+                `${index + 1}. ${item.payment_type} | Due: ${formatDate(item.date_due)} | Amount: ${formatCurrency(item.amount)}`
+            ))
+            : [
+                `1. ${paymentType || 'RENT'} | Due: ${formatDate(dueDate)} | Amount: ${formatCurrency(amount)}`
+            ];
+
         const message = [
             `Hello ${tenantName},`,
             ``,
-            `This is a payment reminder regarding your outstanding ${paymentType || 'rent'} payment${paymentCount > 1 ? 's' : ''} of ${formatCurrency(amount)}.`,
+            `This is a payment reminder regarding your outstanding payment arrears${houseNumber ? ` for House ${houseNumber}` : ''}.`,
             ``,
-            `*Reason:* Payment request for outstanding ${paymentType || 'rent'} payment${paymentCount > 1 ? 's' : ''}${houseNumber ? ` — House ${houseNumber}` : ''}`,
-            `*Due Date:* ${formatDate(dueDate)}`,
-            `*Payment Type:* ${paymentType || 'RENT'}`,
-            `*Amount:* ${formatCurrency(amount)}`,
+            `*Reason:* Payment request for overdue arrears`,
+            `*Arrears Details:*`,
+            ...arrearsLines,
+            ``,
+            `*Cumulative Amount:* ${formatCurrency(amount)}`,
             ``,
             `Please arrange payment at your earliest convenience. Thank you.`
         ].join('\n');
@@ -129,12 +140,18 @@ const PaymentList = () => {
                     payment_types: new Set(),
                     payment_count: 0,
                     has_failed: false,
+                    arrears_items: [],
                 };
             }
 
             acc[key].amount += parseFloat(payment.amount || 0);
             acc[key].payment_count += 1;
             acc[key].payment_types.add(payment.payment_type);
+            acc[key].arrears_items.push({
+                payment_type: payment.payment_type,
+                date_due: payment.date_due,
+                amount: payment.amount,
+            });
             if (!acc[key].earliest_due_date || new Date(payment.date_due) < new Date(acc[key].earliest_due_date)) {
                 acc[key].earliest_due_date = payment.date_due;
             }
@@ -313,6 +330,7 @@ const PaymentList = () => {
                                             dueDate: activeTab === 'LATE' ? payment.earliest_due_date : payment.date_due,
                                             houseNumber: payment.house_number,
                                             paymentCount: activeTab === 'LATE' ? payment.payment_count : 1,
+                                            arrearsItems: activeTab === 'LATE' ? payment.arrears_items : [],
                                         })}
                                         style={{
                                             marginTop: '8px',

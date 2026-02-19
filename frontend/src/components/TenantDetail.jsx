@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Home, DollarSign, Wrench, Clock, CheckCircle, Mail, Phone, Calendar, AlertCircle } from 'lucide-react';
+import { ArrowLeft, User, Home, DollarSign, Wrench, Clock, CheckCircle, Mail, Phone, Calendar, Pencil } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/format';
+import AddTenantModal from './AddTenantModal';
 
 const entityLinkStyle = {
     color: 'var(--primary-color)',
@@ -14,6 +15,7 @@ const TenantDetail = () => {
     const navigate = useNavigate();
     const [tenant, setTenant] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     useEffect(() => {
         fetchTenantDetail();
@@ -33,6 +35,11 @@ const TenantDetail = () => {
 
     if (loading) return <div>Loading tenant details...</div>;
     if (!tenant) return <div>Tenant not found</div>;
+
+    const handleTenantUpdated = (updatedTenant) => {
+        setTenant(updatedTenant);
+        fetchTenantDetail();
+    };
 
     return (
         <div className="container">
@@ -64,6 +71,13 @@ const TenantDetail = () => {
                                 <User size={32} />
                                 {tenant.name}
                             </h1>
+                            <button
+                                onClick={() => setIsEditModalOpen(true)}
+                                className="house-edit-button"
+                                title="Edit Tenant Details"
+                            >
+                                <Pencil size={18} />
+                            </button>
                         </div>
                         <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.75rem', color: 'var(--text-secondary)' }}>
                             <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -243,6 +257,13 @@ const TenantDetail = () => {
                     <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '2rem' }}>No maintenance requests</p>
                 )}
             </div>
+
+            <AddTenantModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                onTenantAdded={handleTenantUpdated}
+                tenant={tenant}
+            />
         </div >
     );
 };

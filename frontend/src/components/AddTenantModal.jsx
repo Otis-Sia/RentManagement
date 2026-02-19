@@ -2,35 +2,39 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import SearchableSelect from './SearchableSelect';
 
-const AddTenantModal = ({ isOpen, onClose, onTenantAdded, preselectedPropertyId }) => {
-    const [properties, setProperties] = useState([]);
-    const [formData, setFormData] = useState({
-        name: '',
-        property: preselectedPropertyId || '',
-        email: '',
-        phone: '',
-        lease_start: '',
-        lease_end: '',
-        rent_amount: '',
-        deposit: '',
-        rent_due_day: 1,
-        is_active: true
+const AddTenantModal = ({ isOpen, onClose, onTenantAdded, preselectedPropertyId, tenant = null }) => {
+    const isEditMode = !!tenant;
+    const getInitialFormData = () => ({
+        name: tenant?.name || '',
+        property: tenant?.property || preselectedPropertyId || '',
+        email: tenant?.email || '',
+        phone: tenant?.phone || '',
+        lease_start: tenant?.lease_start || '',
+        lease_end: tenant?.lease_end || '',
+        rent_amount: tenant?.rent_amount || '',
+        deposit: tenant?.deposit || '',
+        rent_due_day: tenant?.rent_due_day || 1,
+        is_active: tenant?.is_active ?? true
     });
+
+    const [properties, setProperties] = useState([]);
+    const [formData, setFormData] = useState(getInitialFormData());
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         if (isOpen) {
             fetchProperties();
+            setFormData(getInitialFormData());
         }
-    }, [isOpen]);
+    }, [isOpen, tenant, preselectedPropertyId]);
 
     useEffect(() => {
         // Update property if preselectedPropertyId changes
-        if (preselectedPropertyId) {
+        if (preselectedPropertyId && !isEditMode) {
             setFormData(prev => ({ ...prev, property: preselectedPropertyId }));
         }
-    }, [preselectedPropertyId]);
+    }, [preselectedPropertyId, isEditMode]);
 
     const fetchProperties = async () => {
         try {
@@ -58,8 +62,8 @@ const AddTenantModal = ({ isOpen, onClose, onTenantAdded, preselectedPropertyId 
         setError(null);
 
         try {
-            const response = await fetch('/api/tenants/', {
-                method: 'POST',
+            const response = await fetch(isEditMode ? `/api/tenants/${tenant.id}/` : '/api/tenants/', {
+                method: isEditMode ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -78,22 +82,24 @@ const AddTenantModal = ({ isOpen, onClose, onTenantAdded, preselectedPropertyId 
             const data = await response.json();
             onTenantAdded(data);
             onClose();
-            // Reset form (keep property if preselected)
-            setFormData({
-                name: '',
-                property: preselectedPropertyId || '',
-                email: '',
-                phone: '',
-                lease_start: '',
-                lease_end: '',
-                rent_amount: '',
-                deposit: '',
-                rent_due_day: 1,
-                is_active: true
-            });
+            if (!isEditMode) {
+                // Reset form (keep property if preselected)
+                setFormData({
+                    name: '',
+                    property: preselectedPropertyId || '',
+                    email: '',
+                    phone: '',
+                    lease_start: '',
+                    lease_end: '',
+                    rent_amount: '',
+                    deposit: '',
+                    rent_due_day: 1,
+                    is_active: true
+                });
+            }
         } catch (err) {
-            console.error('Error adding tenant:', err);
-            setError(err.message || 'Failed to add tenant');
+            console.error(`Error ${isEditMode ? 'updating' : 'adding'} tenant:`, err);
+            setError(err.message || `Failed to ${isEditMode ? 'update' : 'add'} tenant`);
         } finally {
             setLoading(false);
         }
@@ -130,7 +136,7 @@ const AddTenantModal = ({ isOpen, onClose, onTenantAdded, preselectedPropertyId 
                 position: 'relative'
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                    <h2 style={{ margin: 0 }}>Add New Tenant</h2>
+                    <h2 style={{ margin: 0 }}>{isEditMode ? 'Edit Tenant' : 'Add New Tenant'}</h2>
                     <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem' }}>
                         <X size={24} />
                     </button>
@@ -169,7 +175,7 @@ const AddTenantModal = ({ isOpen, onClose, onTenantAdded, preselectedPropertyId 
                             options={properties.map(p => ({
                                 id: p.id,
                                 label: `House ${p.house_number} - ${p.address} ${p.is_occupied ? '(Occupied)' : ''}`,
-                                disabled: p.is_occupied && p.id !== parseInt(preselectedPropertyId),
+                                disabled: p.is_occupied && p.id !== parseInt(tenant?.property || preselectedPropertyId),
                                 ...p
                             })).filter(p => !p.disabled)} // Filter out occupied properties unless preselected
                             placeholder="Select a property"
@@ -279,7 +285,7 @@ const AddTenantModal = ({ isOpen, onClose, onTenantAdded, preselectedPropertyId 
                             Cancel
                         </button>
                         <button type="submit" className="btn btn-primary" disabled={loading}>
-                            {loading ? 'Adding...' : 'Add Tenant'}
+                            {loading ? (isEditMode ? 'Saving...' : 'Adding...') : (isEditMode ? 'Save Changes' : 'Add Tenant')}
                         </button>
                     </div>
                 </form>

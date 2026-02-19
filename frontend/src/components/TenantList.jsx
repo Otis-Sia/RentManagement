@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Search, Phone, Mail, FileText, Home, Calendar } from 'lucide-react';
+import { Plus, Search, Phone, Mail, Home, Calendar, Pencil } from 'lucide-react';
 import AddTenantModal from './AddTenantModal';
 import { formatCurrency } from '../utils/format';
 
@@ -16,6 +16,7 @@ const TenantList = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedTenant, setSelectedTenant] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -34,10 +35,14 @@ const TenantList = () => {
         }
     };
 
-    const handleTenantAdded = (newTenant) => {
-        setTenants(prev => [...prev, newTenant]);
-        // Optionally refetch to ensure sync
+    const handleTenantSaved = (savedTenant) => {
+        if (selectedTenant) {
+            setTenants(prev => prev.map(t => t.id === savedTenant.id ? savedTenant : t));
+        } else {
+            setTenants(prev => [...prev, savedTenant]);
+        }
         fetchTenants();
+        setSelectedTenant(null);
     };
 
     const filteredTenants = tenants.filter(tenant => {
@@ -172,6 +177,18 @@ const TenantList = () => {
                         </div>
 
                         <div style={{ textAlign: 'right' }}>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedTenant(tenant);
+                                    setIsModalOpen(true);
+                                }}
+                                className="house-edit-button"
+                                title="Edit Tenant"
+                                style={{ marginBottom: '0.5rem' }}
+                            >
+                                <Pencil size={18} />
+                            </button>
                             <div style={{ fontWeight: 600, fontSize: '1rem' }}>{formatCurrency(tenant.rent_amount)}/mo</div>
                             <div style={{ fontSize: '0.875rem', color: tenant.is_active ? 'var(--success-color)' : 'var(--text-secondary)' }}>
                                 {tenant.is_active ? 'Active Lease' : 'Inactive'}
@@ -188,8 +205,12 @@ const TenantList = () => {
 
             <AddTenantModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onTenantAdded={handleTenantAdded}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setSelectedTenant(null);
+                }}
+                onTenantAdded={handleTenantSaved}
+                tenant={selectedTenant}
             />
         </div>
     );

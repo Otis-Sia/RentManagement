@@ -180,3 +180,92 @@ class PaymentStatusRulesTests(TestCase):
 		self.assertEqual(first_arrears.status, 'PAID')
 		self.assertEqual(second_arrears.status, 'LATE')
 		self.assertEqual(str(second_arrears.amount), '700.00')
+
+	def test_payment_over_ninety_days_becomes_defaulted(self):
+		payment = self._create_payment(payment_type='RENT', days_overdue=91, with_date_paid=False)
+		self.assertEqual(payment.status, 'DEFAULTED')
+
+	def test_update_payment_clears_arrears(self):
+		arrears = Payment.objects.create(
+			tenant=self.tenant,
+			amount='5000.00',
+			date_due=date.today() - timedelta(days=40),
+			payment_type='RENT',
+			status='FAILED',
+		)
+
+		payment = Payment.objects.create(
+			tenant=self.tenant,
+			amount='5000.00',
+			date_due=date.today(),
+			payment_type='RENT',
+			status='PENDING',
+		)
+
+		serializer = PaymentSerializer(
+			instance=payment,
+			data={
+				'date_paid': date.today().isoformat(),
+				'clear_arrears_payment_id': arrears.id,
+			},
+			partial=True,
+		)
+
+		self.assertTrue(serializer.is_valid(), serializer.errors)
+		serializer.save()
+
+		arrears.refresh_from_db()
+		self.assertEqual(arrears.status, 'PAID')
+
+	def test_paid_late_is_still_paid(self):
+		"""Payment paid after grace period but before failed threshold is still PAID."""
+		payment = self._create_payment(payment_type='RENT', days_overdue=20, with_date_paid=True)
+		self.assertEqual(payment.status, 'PAID')
+
+	def test_all_inclusive_clears_defaulted_arrears(self):
+		defaulted_arrears = Payment.objects.create(
+			tenant=self.tenant,
+			amount='1000.00',
+			date_due=date.today() - timedelta(days=100),
+			payment_type='RENT',
+			status='DEFAULTED',
+		)
+
+		serializer = PaymentSerializer(data={
+			'tenant': self.tenant.id,
+			'amount': '1000.00',
+			'date_due': date.today(),
+			'date_paid': date.today(),
+			'payment_type': 'RENT',
+			'all_inclusive': True,
+		})
+
+		self.assertTrue(serializer.is_valid(), serializer.errors)
+		serializer.save()
+
+		defaulted_arrears.refresh_from_db()
+		self.assertEqual(defaulted_arrears.status, 'PAID')
+
+	def test_specific_defaulted_arrears_can_be_cleared(self):
+		defaulted_arrears = Payment.objects.create(
+			tenant=self.tenant,
+			amount='1200.00',
+			date_due=date.today() - timedelta(days=120),
+			payment_type='RENT',
+			status='DEFAULTED',
+		)
+
+		serializer = PaymentSerializer(data={
+			'tenant': self.tenant.id,
+			'amount': '1200.00',
+			'date_due': date.today(),
+			'date_paid': date.today(),
+			'payment_type': 'RENT',
+			'clear_arrears_payment_id': defaulted_arrears.id,
+		})
+
+		self.assertTrue(serializer.is_valid(), serializer.errors)
+		serializer.save()
+
+		defaulted_arrears.refresh_from_db()
+		self.assertEqual(defaulted_arrears.status, 'PAID')

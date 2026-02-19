@@ -7,7 +7,8 @@ from .models import Payment
 
 LATE_AFTER_DAYS = 5
 FAILED_AFTER_DAYS = 35
-MAX_RENT_FAILED_BEFORE_SEVERE = 1
+DEFAULTED_AFTER_DAYS = 90
+MAX_RENT_FAILED_BEFORE_SEVERE = 2
 
 class PaymentSerializer(serializers.ModelSerializer):
     clear_arrears_payment_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
@@ -31,6 +32,11 @@ class PaymentSerializer(serializers.ModelSerializer):
             return 'PAID' if date_paid else 'PENDING'
         if date_paid and overdue_days <= LATE_AFTER_DAYS:
             return 'PAID'
+        if date_paid:
+            # Paid late but still paid
+            return 'PAID'
+        if overdue_days > DEFAULTED_AFTER_DAYS:
+            return 'DEFAULTED'
         if overdue_days > FAILED_AFTER_DAYS:
             return 'FAILED'
         if overdue_days > LATE_AFTER_DAYS:
@@ -89,7 +95,7 @@ class PaymentSerializer(serializers.ModelSerializer):
 
         arrears_payments = Payment.objects.filter(
             tenant=payment.tenant,
-            status__in=['LATE', 'FAILED', 'SEVERE']
+            status__in=['LATE', 'FAILED', 'SEVERE', 'DEFAULTED', 'PENDING']
         ).exclude(id=payment.id).order_by('date_due', 'id')
 
         for arrears_payment in arrears_payments:
@@ -161,7 +167,7 @@ class PaymentSerializer(serializers.ModelSerializer):
             arrears_payment = Payment.objects.filter(
                 id=selected_clear_payment_id,
                 tenant=tenant,
-                status__in=['LATE', 'FAILED', 'SEVERE']
+                status__in=['LATE', 'FAILED', 'SEVERE', 'DEFAULTED']
             ).first()
 
             if not arrears_payment:
@@ -194,7 +200,29 @@ class PaymentSerializer(serializers.ModelSerializer):
             arrears_payment = Payment.objects.filter(
                 id=selected_clear_payment_id,
                 tenant=payment.tenant,
-                status__in=['LATE', 'FAILED', 'SEVERE']
+                status__in=['LATE', 'FAILED', 'SEVERE', 'DEFAULTED']
+            ).first()
+
+            if arrears_payment:
+                self._apply_payment_to_single_arrears(payment, arrears_payment)
+        elif all_inclusive and payment.payment_type == 'RENT':
+            self._apply_payment_to_all_arrears(payment)
+
+        return payment
+
+    def update(self, instance, validated_data):
+        clear_arrears_payment_id = validated_data.pop('clear_arrears_payment_id', None)
+        clear_failed_payment_id = validated_data.pop('clear_failed_payment_id', None)
+        all_inclusive = bool(validated_data.pop('all_inclusive', False))
+        selected_clear_payment_id = clear_arrears_payment_id if clear_arrears_payment_id is not None else clear_failed_payment_id
+
+        payment = super().update(instance, validated_data)
+
+        if selected_clear_payment_id is not None:
+            arrears_payment = Payment.objects.filter(
+                id=selected_clear_payment_id,
+                tenant=payment.tenant,
+                status__in=['LATE', 'FAILED', 'SEVERE', 'DEFAULTED']
             ).first()
 
             if arrears_payment:

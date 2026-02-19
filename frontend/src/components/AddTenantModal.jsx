@@ -167,9 +167,16 @@ const AddTenantModal = ({ isOpen, onClose, onTenantAdded, preselectedPropertyId,
                             name="property"
                             value={formData.property}
                             onChange={(e) => {
-                                // Adapt change event to match expected format if needed, 
-                                // but SearchableSelect already mimics event structure
                                 handleChange(e);
+
+                                // Auto-populate rent amount from selected property
+                                const selectedProperty = properties.find(p => p.id === parseInt(e.target.value));
+                                if (selectedProperty) {
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        rent_amount: selectedProperty.monthly_rent
+                                    }));
+                                }
                             }}
                             required
                             options={properties.map(p => ({
@@ -237,15 +244,14 @@ const AddTenantModal = ({ isOpen, onClose, onTenantAdded, preselectedPropertyId,
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Rent Amount (KSh)</label>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Rent Amount (KSh) - Auto-filled</label>
                             <input
                                 type="number"
                                 name="rent_amount"
                                 value={formData.rent_amount}
-                                onChange={handleChange}
-                                step="0.01"
-                                required
-                                style={inputStyle}
+                                readOnly
+                                disabled
+                                style={{ ...inputStyle, backgroundColor: '#e5e7eb', cursor: 'not-allowed' }}
                             />
                         </div>
                         <div>

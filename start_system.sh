@@ -28,7 +28,7 @@ echo -e "${BLUE}======================================${NC}"
 
 # Step 1: Database Migration
 echo ""
-echo -e "${YELLOW}[1/5] Running database migrations...${NC}"
+echo -e "${YELLOW}[1/4] Running database migrations...${NC}"
 cd backend
 source venv/bin/activate
 
@@ -45,23 +45,11 @@ if [ $? -ne 0 ]; then
 fi
 echo -e "${GREEN}✓ Database migrations complete${NC}"
 
-# Step 2: Run Tests
-echo ""
-echo -e "${YELLOW}[2/5] Running system tests...${NC}"
-python manage.py test houses tenants
-if [ $? -ne 0 ]; then
-    echo -e "${RED}Tests failed! Continue anyway? (y/n)${NC}"
-    read -p "" continue_choice
-    if [ "$continue_choice" != "y" ]; then
-        exit 1
-    fi
-else
-    echo -e "${GREEN}✓ All tests passed${NC}"
-fi
 
-# Step 3: Build Frontend
+
+# Step 2: Build Frontend
 echo ""
-echo -e "${YELLOW}[3/5] Building frontend for production...${NC}"
+echo -e "${YELLOW}[2/4] Building frontend for production...${NC}"
 cd ../frontend
 npm run build
 if [ $? -ne 0 ]; then
@@ -71,9 +59,9 @@ fi
 echo -e "${GREEN}✓ Frontend built successfully${NC}"
 cd ..
 
-# Step 4: Configure and Start NGINX
+# Step 3: Configure and Start NGINX
 echo ""
-echo -e "${YELLOW}[4/5] Configuring NGINX...${NC}"
+echo -e "${YELLOW}[3/4] Configuring NGINX...${NC}"
 
 # Check if NGINX config needs to be installed
 if [ ! -f /etc/nginx/sites-available/rent-management ]; then
@@ -108,9 +96,9 @@ if [ $? -ne 0 ]; then
 fi
 echo -e "${GREEN}✓ NGINX started successfully${NC}"
 
-# Step 5: Start Django Backend
+# Step 4: Start Django Backend
 echo ""
-echo -e "${YELLOW}[5/5] Starting Django backend...${NC}"
+echo -e "${YELLOW}[4/4] Starting Django backend...${NC}"
 
 # Kill any existing Django servers on the port
 echo "Checking for existing Django processes..."

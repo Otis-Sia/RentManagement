@@ -23,6 +23,7 @@ const MaintenanceList = () => {
     const fetchRequests = async () => {
         try {
             const response = await fetch('/api/maintenance/');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const data = await response.json();
             setRequests(data);
             setLoading(false);

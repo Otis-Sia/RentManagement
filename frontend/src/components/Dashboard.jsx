@@ -36,7 +36,10 @@ const Dashboard = () => {
         const API_BASE = '/api';
 
         fetch(`${API_BASE}/reports/dashboard/`)
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                return res.json();
+            })
             .then(data => {
                 setStats(data);
                 setLoading(false);

@@ -24,6 +24,7 @@ const TenantDetail = () => {
     const fetchTenantDetail = async () => {
         try {
             const response = await fetch(`/api/tenants/${id}/`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const data = await response.json();
             setTenant(data);
             setLoading(false);

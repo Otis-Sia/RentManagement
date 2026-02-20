@@ -16,7 +16,7 @@ const PAYMENT_STATUS_COLORS = {
     PAID: COLORS.success,
     PENDING: COLORS.warning,
     LATE: COLORS.warning,
-    FAILED: COLORS.accent,
+    FAILED: COLORS.danger,
     SEVERE: COLORS.danger,
     DEFAULTED: COLORS.purple
 };

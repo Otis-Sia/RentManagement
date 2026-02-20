@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Home, CreditCard, Wrench, FileText, Users, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Home, CreditCard, Wrench, FileText, Users, Menu, X, ArrowUpDown, Receipt, BarChart3, UserCheck, Wallet } from 'lucide-react';
 import './index.css';
 
 const Layout = () => {
     const location = useLocation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isBottomNavVisible, setIsBottomNavVisible] = useState(true);
-    const [lastScrollY, setLastScrollY] = useState(0);
+    const lastScrollYRef = useRef(0);
 
     const navItems = [
         { path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -15,6 +15,11 @@ const Layout = () => {
         { path: '/tenants', label: 'Tenants', icon: Users },
         { path: '/payments', label: 'Payments', icon: CreditCard },
         { path: '/maintenance', label: 'Maintenance', icon: Wrench },
+        { path: '/transactions', label: 'Transactions', icon: ArrowUpDown },
+        { path: '/invoices', label: 'Invoices', icon: Receipt },
+        { path: '/financial-reports', label: 'Finance', icon: BarChart3 },
+        { path: '/employees', label: 'Employees', icon: UserCheck },
+        { path: '/payroll', label: 'Payroll', icon: Wallet },
         { path: '/reports', label: 'Reports', icon: FileText },
     ];
 
@@ -26,18 +31,18 @@ const Layout = () => {
             const currentScrollY = window.scrollY;
 
             // Show nav when scrolling up, hide when scrolling down
-            if (currentScrollY < lastScrollY || currentScrollY < 50) {
+            if (currentScrollY < lastScrollYRef.current || currentScrollY < 50) {
                 setIsBottomNavVisible(true);
-            } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+            } else if (currentScrollY > lastScrollYRef.current && currentScrollY > 100) {
                 setIsBottomNavVisible(false);
             }
 
-            setLastScrollY(currentScrollY);
+            lastScrollYRef.current = currentScrollY;
         };
 
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [lastScrollY]);
+    }, []);
 
     return (
         <div className="layout-wrapper">

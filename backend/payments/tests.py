@@ -222,18 +222,89 @@ class PaymentStatusRulesTests(TestCase):
 		payment = self._create_payment(payment_type='RENT', days_overdue=20, with_date_paid=True)
 		self.assertEqual(payment.status, 'PAID')
 
-	def test_all_inclusive_clears_defaulted_arrears(self):
-		defaulted_arrears = Payment.objects.create(
+	def test_can_clear_single_defaulted_payment(self):
+		"""Test that users can record payments to clear a specific DEFAULTED payment."""
+		defaulted = Payment.objects.create(
 			tenant=self.tenant,
-			amount='1000.00',
+			amount='5000.00',
 			date_due=date.today() - timedelta(days=100),
 			payment_type='RENT',
 			status='DEFAULTED',
 		)
 
+		# Record a full payment against the defaulted arrears
 		serializer = PaymentSerializer(data={
 			'tenant': self.tenant.id,
-			'amount': '1000.00',
+			'amount': '5000.00',
+			'date_due': date.today(),
+			'date_paid': date.today(),
+			'payment_type': 'RENT',
+			'clear_arrears_payment_id': defaulted.id,
+		})
+
+		self.assertTrue(serializer.is_valid(), serializer.errors)
+		serializer.save()
+
+		defaulted.refresh_from_db()
+		self.assertEqual(defaulted.status, 'PAID')
+		self.assertEqual(str(defaulted.date_paid), str(date.today()))
+
+	def test_can_partially_clear_defaulted_payment(self):
+		"""Test partial payment recording for DEFAULTED status."""
+		defaulted = Payment.objects.create(
+			tenant=self.tenant,
+			amount='10000.00',
+			date_due=date.today() - timedelta(days=100),
+			payment_type='RENT',
+			status='DEFAULTED',
+		)
+
+		# Record a partial payment
+		serializer = PaymentSerializer(data={
+			'tenant': self.tenant.id,
+			'amount': '6000.00',
+			'date_due': date.today(),
+			'date_paid': date.today(),
+			'payment_type': 'RENT',
+			'clear_arrears_payment_id': defaulted.id,
+		})
+
+		self.assertTrue(serializer.is_valid(), serializer.errors)
+		serializer.save()
+
+		defaulted.refresh_from_db()
+		# Partial payment should reduce amount but remain unpaid
+		self.assertEqual(str(defaulted.amount), '4000.00')
+		self.assertIsNone(defaulted.date_paid)
+
+	def test_all_inclusive_handles_mixed_statuses(self):
+		"""Test all-inclusive clearing with mix of LATE, FAILED, SEVERE, and DEFAULTED."""
+		late_payment = Payment.objects.create(
+			tenant=self.tenant,
+			amount='1000.00',
+			date_due=date.today() - timedelta(days=10),
+			payment_type='RENT',
+			status='LATE',
+		)
+		failed_payment = Payment.objects.create(
+			tenant=self.tenant,
+			amount='2000.00',
+			date_due=date.today() - timedelta(days=50),
+			payment_type='RENT',
+			status='FAILED',
+		)
+		defaulted_payment = Payment.objects.create(
+			tenant=self.tenant,
+			amount='3000.00',
+			date_due=date.today() - timedelta(days=100),
+			payment_type='RENT',
+			status='DEFAULTED',
+		)
+
+		# Record payment with all_inclusive to clear all
+		serializer = PaymentSerializer(data={
+			'tenant': self.tenant.id,
+			'amount': '6000.00',
 			'date_due': date.today(),
 			'date_paid': date.today(),
 			'payment_type': 'RENT',
@@ -243,29 +314,11 @@ class PaymentStatusRulesTests(TestCase):
 		self.assertTrue(serializer.is_valid(), serializer.errors)
 		serializer.save()
 
-		defaulted_arrears.refresh_from_db()
-		self.assertEqual(defaulted_arrears.status, 'PAID')
+		late_payment.refresh_from_db()
+		failed_payment.refresh_from_db()
+		defaulted_payment.refresh_from_db()
 
-	def test_specific_defaulted_arrears_can_be_cleared(self):
-		defaulted_arrears = Payment.objects.create(
-			tenant=self.tenant,
-			amount='1200.00',
-			date_due=date.today() - timedelta(days=120),
-			payment_type='RENT',
-			status='DEFAULTED',
-		)
-
-		serializer = PaymentSerializer(data={
-			'tenant': self.tenant.id,
-			'amount': '1200.00',
-			'date_due': date.today(),
-			'date_paid': date.today(),
-			'payment_type': 'RENT',
-			'clear_arrears_payment_id': defaulted_arrears.id,
-		})
-
-		self.assertTrue(serializer.is_valid(), serializer.errors)
-		serializer.save()
-
-		defaulted_arrears.refresh_from_db()
-		self.assertEqual(defaulted_arrears.status, 'PAID')
+		# All should be paid (oldest first: defaulted, failed, late)
+		self.assertEqual(late_payment.status, 'PAID')
+		self.assertEqual(failed_payment.status, 'PAID')
+		self.assertEqual(defaulted_payment.status, 'PAID')

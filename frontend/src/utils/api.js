@@ -111,7 +111,7 @@ export function getQueue() {
     }
 }
 
-function saveQueue(queue) {
+export function saveQueue(queue) {
     localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
 }
 

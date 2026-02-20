@@ -1,4 +1,4 @@
-import { getQueue, clearQueue } from './utils/api';
+import { getQueue, clearQueue, saveQueue } from './utils/api';
 
 let registration = null;
 let isOnline = navigator.onLine;
@@ -76,28 +76,37 @@ async function syncOfflineChanges() {
 
     let successCount = 0;
     let failedCount = 0;
+    const failedItems = [];
 
     for (const item of queue) {
         try {
             console.log(`[Sync] Processing ${item.method} ${item.url}`);
 
             // Replay the request
-            await fetch(item.url, {
+            const response = await fetch(item.url, {
                 method: item.method,
                 headers: item.headers,
                 body: item.data ? JSON.stringify(item.data) : undefined
             });
 
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             successCount++;
         } catch (error) {
             console.error(`[Sync] Failed to sync item ${item.url}:`, error);
+            failedItems.push(item);
             failedCount++;
         }
     }
 
+    if (failedItems.length > 0) {
+        // Keep only failed items in the queue
+        saveQueue(failedItems);
+    } else {
+        clearQueue();
+    }
+
     if (successCount > 0) {
-        clearQueue(); // Clear queue after successful sync
-        showConnectionNotification(`Synced ${successCount} changes successfully`, 'success');
+        showConnectionNotification(`Synced ${successCount} changes successfully${failedCount > 0 ? `, ${failedCount} failed` : ''}`, 'success');
         // Refresh page to show updated data
         setTimeout(() => window.location.reload(), 1500);
     } else if (failedCount > 0) {

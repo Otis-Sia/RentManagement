@@ -31,6 +31,7 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
     const fetchProperties = async () => {
         try {
             const response = await fetch('/api/houses/');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const data = await response.json();
             // Filter only occupied properties for payments
             const occupiedProperties = data.filter(p => p.is_occupied);
@@ -43,6 +44,7 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
     const fetchArrearsPayments = async () => {
         try {
             const response = await fetch('/api/payments/');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const data = await response.json();
             setArrearsPayments(data.filter(
                 payment => payment.status === 'LATE' || payment.status === 'FAILED' || payment.status === 'SEVERE' || payment.status === 'DEFAULTED'
@@ -122,21 +124,11 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
         }
 
         if (name === 'payment_type') {
-            if (value === 'RENT_ALL_INCLUSIVE') {
-                setFormData(prev => ({
-                    ...prev,
-                    payment_type: 'RENT',
-                    all_inclusive: true,
-                    // Auto-disable clear arrears if all inclusive is selected (logic handled in render mostly, but good to keep state consistent)
-                    clear_arrears_payment_id: ''
-                }));
-            } else {
-                setFormData(prev => ({
-                    ...prev,
-                    payment_type: value,
-                    all_inclusive: false
-                }));
-            }
+            setFormData(prev => ({
+                ...prev,
+                payment_type: value,
+                all_inclusive: value === 'RENT' ? prev.all_inclusive : false
+            }));
             return;
         }
 
@@ -164,10 +156,6 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
             setCalculatedStatus(formData.date_paid ? 'PAID' : 'PENDING');
         } else if (formData.date_paid && diffDays <= 5) {
             setCalculatedStatus('PAID');
-        } else if (formData.date_paid) {
-            setCalculatedStatus('PAID');
-        } else if (diffDays > 90) {
-            setCalculatedStatus('DEFAULTED');
         } else if (diffDays > 35) {
             if (formData.payment_type === 'RENT') {
                 const rentFailedCount = arrearsPayments.filter(payment =>
@@ -176,7 +164,7 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                     payment.status === 'FAILED'
                 ).length;
 
-                setCalculatedStatus(rentFailedCount >= 2 ? 'SEVERE' : 'FAILED');
+                setCalculatedStatus(rentFailedCount >= 1 ? 'SEVERE' : 'FAILED');
             } else {
                 setCalculatedStatus('FAILED');
             }
@@ -193,14 +181,14 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                     payment.payment_type === 'RENT' &&
                     payment.status === 'FAILED'
                 ).length;
-                setCalculatedStatus(rentFailedCount >= 2 ? 'SEVERE' : 'FAILED');
+                setCalculatedStatus(rentFailedCount >= 1 ? 'SEVERE' : 'FAILED');
             } else {
                 setCalculatedStatus('FAILED');
             }
         } else {
             setCalculatedStatus('PENDING');
         }
-    }, [formData.date_due, formData.date_paid, formData.tenant, formData.payment_type, arrearsPayments]);
+    }, [formData.date_due, formData.date_paid, formData.tenant, arrearsPayments]);
 
     if (!isOpen) return null;
 
@@ -279,7 +267,7 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
     );
 
     return (
-        <div style={{
+        <div onClick={onClose} style={{
             position: 'fixed',
             top: 0,
             left: 0,
@@ -291,7 +279,7 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
             justifyContent: 'center',
             zIndex: 1000
         }}>
-            <div className="card" style={{
+            <div onClick={(e) => e.stopPropagation()} className="card" style={{
                 width: '100%',
                 maxWidth: '500px',
                 maxHeight: '90vh',
@@ -335,13 +323,13 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Payment Type</label>
                             <select
                                 name="payment_type"
-                                value={formData.all_inclusive && formData.payment_type === 'RENT' ? 'RENT_ALL_INCLUSIVE' : formData.payment_type}
+                                value={formData.payment_type}
                                 onChange={handleChange}
                                 required
                                 style={inputStyle}
                             >
                                 <option value="RENT">Rent</option>
-                                <option value="RENT_ALL_INCLUSIVE">Rent (All Inclusive)</option>
+                                <option value="DEPOSIT">Security Deposit</option>
                                 <option value="FEE">Late Fee</option>
                                 <option value="OTHER">Other</option>
                             </select>
@@ -356,14 +344,14 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                                 color:
                                     calculatedStatus === 'PAID' ? 'var(--success-color)' :
                                         calculatedStatus === 'LATE' ? 'var(--warning-color)' :
-                                            (calculatedStatus === 'FAILED' || calculatedStatus === 'SEVERE' || calculatedStatus === 'DEFAULTED') ? 'var(--danger-color)' :
+                                            (calculatedStatus === 'FAILED' || calculatedStatus === 'SEVERE') ? 'var(--danger-color)' :
                                                 'var(--text-secondary)',
                                 fontWeight: 600
                             }}>
                                 {calculatedStatus}
-                                {(calculatedStatus === 'FAILED' || calculatedStatus === 'SEVERE' || calculatedStatus === 'DEFAULTED') && (
+                                {(calculatedStatus === 'FAILED' || calculatedStatus === 'SEVERE') && (
                                     <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--danger-color)', marginTop: '0.25rem' }}>
-                                        {calculatedStatus === 'DEFAULTED' ? '⚠️ Payment is over 90 days late!' : '⚠️ Payment is over 35 days late!'}
+                                        ⚠️ Payment is over 35 days late!
                                     </span>
                                 )}
                             </div>
@@ -427,6 +415,18 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
                                 ))}
                             </select>
                         </div>
+                    )}
+
+                    {formData.tenant && formData.payment_type === 'RENT' && (
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500 }}>
+                            <input
+                                type="checkbox"
+                                name="all_inclusive"
+                                checked={formData.all_inclusive}
+                                onChange={handleChange}
+                            />
+                            Make this payment all-inclusive (auto-clear past arrears if no specific arrears is selected)
+                        </label>
                     )}
 
                     <div>

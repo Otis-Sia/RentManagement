@@ -25,6 +25,7 @@ const PaymentList = () => {
     const fetchPayments = async () => {
         try {
             const response = await fetch('/api/payments/');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const data = await response.json();
             setPayments(data);
             setLoading(false);

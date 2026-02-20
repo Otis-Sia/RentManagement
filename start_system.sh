@@ -111,7 +111,14 @@ echo -e "${BLUE}======================================${NC}"
 echo ""
 echo -e "${YELLOW}[1/4] Running database migrations...${NC}"
 cd backend
-source venv/bin/activate
+if [ -d "venv" ]; then
+    source venv/bin/activate
+elif [ -d "../.venv" ]; then
+    source ../.venv/bin/activate
+else
+    echo -e "${RED}No virtual environment found! Create one with: python -m venv venv${NC}"
+    exit 1
+fi
 
 python manage.py makemigrations
 if [ $? -ne 0 ]; then

@@ -9,6 +9,11 @@ import TenantDetail from './components/TenantDetail';
 import PaymentList from './components/PaymentList';
 import MaintenanceList from './components/MaintenanceList';
 import Reports from './components/Reports';
+import TransactionList from './components/TransactionList';
+import InvoiceList from './components/InvoiceList';
+import FinancialReports from './components/FinancialReports';
+import EmployeeList from './components/EmployeeList';
+import PayrollRunList from './components/PayrollRunList';
 
 function App() {
   return (
@@ -23,6 +28,11 @@ function App() {
           <Route path="payments" element={<PaymentList />} />
           <Route path="maintenance" element={<MaintenanceList />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="transactions" element={<TransactionList />} />
+          <Route path="invoices" element={<InvoiceList />} />
+          <Route path="financial-reports" element={<FinancialReports />} />
+          <Route path="employees" element={<EmployeeList />} />
+          <Route path="payroll" element={<PayrollRunList />} />
         </Route>
       </Routes>
     </BrowserRouter>

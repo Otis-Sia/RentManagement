@@ -26,6 +26,7 @@ const HouseDetail = () => {
     const fetchHouseDetail = async () => {
         try {
             const response = await fetch(`/api/houses/${id}/`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const data = await response.json();
             setHouse(data);
             setLoading(false);

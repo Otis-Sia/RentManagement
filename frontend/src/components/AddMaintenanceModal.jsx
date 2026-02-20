@@ -25,6 +25,7 @@ const AddMaintenanceModal = ({ isOpen, onClose, onRequestAdded }) => {
     const fetchProperties = async () => {
         try {
             const response = await fetch('/api/houses/');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const data = await response.json();
             setProperties(data);
         } catch (err) {
@@ -122,7 +123,7 @@ const AddMaintenanceModal = ({ isOpen, onClose, onRequestAdded }) => {
     };
 
     return (
-        <div style={{
+        <div onClick={onClose} style={{
             position: 'fixed',
             top: 0,
             left: 0,
@@ -134,7 +135,7 @@ const AddMaintenanceModal = ({ isOpen, onClose, onRequestAdded }) => {
             justifyContent: 'center',
             zIndex: 1000
         }}>
-            <div className="card" style={{
+            <div onClick={(e) => e.stopPropagation()} className="card" style={{
                 width: '100%',
                 maxWidth: '500px',
                 maxHeight: '90vh',

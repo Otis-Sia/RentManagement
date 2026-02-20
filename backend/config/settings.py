@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     'payments',
     'maintenance',
     'reports',
+    'finance',
+    'payroll',
 ]
 
 MIDDLEWARE = [

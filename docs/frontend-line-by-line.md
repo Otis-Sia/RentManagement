@@ -131,10 +131,15 @@ For CSS files:
 - loads payment records
 - tab/filter behavior (all/late/etc.)
 - status badges and due/paid date display
+- displays payment_method and notes columns
 - reminder actions (e.g., WhatsApp message helper)
 
 ### `AddPaymentModal.jsx`
-- add payment form
+- add payment form with tenant, amount, dates, type selection
+- **payment_method dropdown** (MPESA, Cash, Bank Transfer, Cheque, Other)
+- **notes textarea** for payment remarks
+- **status preview** — real-time computed status display matching backend thresholds:
+  - PENDING (≤5 days overdue), LATE (6–35 days), FAILED (36–90 days), SEVERE (≥2 failed rent), DEFAULTED (>90 days), PAID
 - validation and create API request
 
 ### `MaintenanceList.jsx`

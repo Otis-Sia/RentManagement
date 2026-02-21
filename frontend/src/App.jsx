@@ -14,6 +14,7 @@ import InvoiceList from './components/InvoiceList';
 import FinancialReports from './components/FinancialReports';
 import EmployeeList from './components/EmployeeList';
 import PayrollRunList from './components/PayrollRunList';
+import BroadcastList from './components/BroadcastList';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <Route path="financial-reports" element={<FinancialReports />} />
           <Route path="employees" element={<EmployeeList />} />
           <Route path="payroll" element={<PayrollRunList />} />
+          <Route path="broadcasts" element={<BroadcastList />} />
         </Route>
       </Routes>
     </BrowserRouter>

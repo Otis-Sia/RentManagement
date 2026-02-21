@@ -149,33 +149,73 @@ When exact numbers change over time, use this as the stable interpretation of ea
 ## Payments app (`backend/payments/`)
 
 ### `payments/models.py`
-- `Payment` model
-- status/type choices near top
-- payment columns: tenant, amount, due/paid dates, transaction id, status
-- `__str__` for admin display
+- **Status/type/method choices**: `PAYMENT_STATUS_CHOICES` (PENDING, LATE, FAILED, SEVERE, DEFAULTED, PAID), `PAYMENT_TYPE_CHOICES` (RENT, DEPOSIT, FEE, OTHER), `PAYMENT_METHOD_CHOICES` (MPESA, CASH, BANK, CHEQUE, OTHER)
+- **`Payment` model fields**:
+  - `tenant` — FK to Tenant, `on_delete=PROTECT` (prevents accidental deletion)
+  - `amount` — DecimalField with `MinValueValidator(0.01)`
+  - `original_amount` — DecimalField, set once on creation (never modified after)
+  - `amount_paid` — DecimalField, tracks how much has been paid (for partial payments)
+  - `date_due`, `date_paid` — DateFields
+  - `transaction_id` — CharField with `UniqueConstraint` (only enforced if non-empty)
+  - `status` — CharField with choices, default PENDING
+  - `payment_type` — CharField with choices
+  - `payment_method` — CharField (MPESA, CASH, BANK, CHEQUE, OTHER)
+  - `invoice` — optional FK to `finance.Invoice`
+  - `notes` — TextField (optional)
+  - `created_at`, `updated_at` — timestamps
+- **`balance` property**: returns `amount - amount_paid`
+- **`save()` override**: sets `original_amount = amount` on first creation only
+- **`Meta`**: ordering by `-date_due, -created_at`; unique constraint on non-empty `transaction_id`
+
+### `payments/status.py` *(new — shared status engine)*
+- **Constants**: `LATE_AFTER_DAYS=5`, `FAILED_AFTER_DAYS=35`, `DEFAULTED_AFTER_DAYS=90`, `MAX_RENT_FAILED_BEFORE_SEVERE=2`
+- **`compute_base_status(date_due, date_paid)`**: pure date-based status (PAID, PENDING, LATE, FAILED, DEFAULTED)
+- **`compute_status_for_tenant(...)`**: adds tenant-history escalation:
+  - LATE → FAILED if tenant already has another LATE payment
+  - FAILED → SEVERE if tenant has ≥ 2 other FAILED rent payments
+- Used by both the serializer (real-time) and the management command (batch)
 
 ### `payments/serializers.py`
-- payment JSON mapping for list/detail/create/update
+- **Write-only control fields**: `clear_arrears_payment_id`, `clear_failed_payment_id`, `all_inclusive`
+- **Read-only convenience fields**: `tenant_name`, `tenant_phone`, `house_number`, `house_id`, `balance`
+- **`_apply_payment_to_single_arrears()`**: applies payment to a specific arrears record via `amount_paid` tracking (never mutates `amount`)
+- **`_apply_payment_to_all_arrears()`**: iterates oldest-first through all overdue payments, incrementing `amount_paid` until the payment amount is exhausted; returns leftover for credit
+- **`validate()`**: auto-computes status via `compute_status_for_tenant()`, rejects future `date_paid`, rejects payments for inactive tenants, validates arrears selection
+- **`create()` / `update()`**: sets `amount_paid` when status becomes PAID; triggers arrears clearing or all-inclusive sweeping; credits overpayment to tenant if `credit_balance` field exists
+- **`read_only_fields`**: `['status', 'original_amount', 'balance']`
 
 ### `payments/views.py`
-- payment endpoint logic
-- filtering and status handling (if included)
+- **`PaymentViewSet`**:
+  - `filter_backends`: `DjangoFilterBackend`, `SearchFilter`, `OrderingFilter`
+  - `filterset_fields`: status, payment_type, payment_method, tenant, date_due
+  - `search_fields`: tenant name, transaction_id, notes
+  - `ordering_fields`: date_due, date_paid, amount, created_at, updated_at
+  - `queryset`: uses `select_related('tenant', 'tenant__property')`
+- **`create()`**: reconciliation (finds existing PENDING for same tenant/date to update); next-month auto-generation on PAID rent
+- **`update()`**: guards immutable fields (amount, date_due, tenant, payment_type) on PAID payments; allows notes/method edits
+- **`destroy()`**: blocks deletion of PAID payments ("void it instead")
+- **`receipt()` action** (`GET /payments/{id}/receipt/`): returns structured receipt JSON with tenant, property, payment details, and balance
 
 ### `payments/urls.py`
-- router entries for payment endpoints
+- Router registration for `PaymentViewSet` (includes receipt action route)
 
 ### `payments/admin.py`
-- admin list table columns and filters
+- Admin registration (pending — currently placeholder)
 
 ### `payments/tests.py`
-- payment behavior tests
+- Payment behavior tests (serializer-level; API tests planned)
 
 ### `payments/management/commands/update_payment_statuses.py`
-- custom manage command
-- computes overdue state transitions in batch
+- Batch management command using shared `compute_status_for_tenant()` from `payments.status`
+- Iterates all unpaid payments, recomputes status, saves individually (not bulk update)
+- Logs each transition (e.g., `PENDING → LATE`, `LATE → FAILED`)
+- Handles inactive tenants separately → marks all their unpaid payments as DEFAULTED
+- Outputs transition summary counts
 
 ### `payments/migrations/*.py`
-- initial schema + status option changes over time
+- `0001_initial.py` → `0003`: original schema + status option changes
+- `0004_add_payment_fields.py`: adds amount_paid, original_amount, payment_method, notes, updated_at, invoice FK, PROTECT, constraints
+- `0005_backfill_payment_amounts.py`: data migration backfilling original_amount and amount_paid for existing records
 
 ---
 

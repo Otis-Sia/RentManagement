@@ -107,12 +107,14 @@ Manages tenant records and lease docs.
 - `migrations/`: DB table definitions/updates
 
 ## `backend/payments/`
-Tracks rent and other payment records.
-- `models.py`: payment amount, due date, paid date, status, type
-- `serializers.py`: payment JSON mapping
-- `views.py`: payment APIs
-- `urls.py`: payment routes
-- `migrations/`: payment schema versions
+Tracks rent and other payment records with full status lifecycle.
+- `models.py`: Payment model — amount, original_amount, amount_paid, balance (property), due/paid dates, status (PENDING → LATE → FAILED → SEVERE → DEFAULTED → PAID), payment_type, payment_method (MPESA/CASH/BANK/CHEQUE/OTHER), transaction_id (unique constraint), notes, invoice FK. Uses `PROTECT` on tenant FK and `MinValueValidator` on amount.
+- `status.py`: **shared status computation module** — single source of truth for status logic used by both the serializer and the management command. Implements escalation ladder (LATE after 5 days, FAILED after 35 days, DEFAULTED after 90 days) and tenant-history escalation (LATE→FAILED if another LATE exists, FAILED→SEVERE if ≥2 FAILED rent payments exist).
+- `serializers.py`: payment JSON mapping with arrears-clearing logic (single and all-inclusive), amount_paid tracking (never mutates original amount), auto-computed status via `status.py`, validation guards (reject future date_paid, reject inactive tenant payments).
+- `views.py`: payment CRUD with filtering (`DjangoFilterBackend`), search, ordering; reconciliation on create (finds existing PENDING to update); next-month auto-generation; update guard (immutable fields on PAID); delete guard (cannot delete PAID); receipt endpoint (`/payments/{id}/receipt/`).
+- `urls.py`: payment routes (includes receipt action)
+- `management/commands/update_payment_statuses.py`: batch status updater using shared `status.py` module, logs individual transitions, handles inactive tenant → DEFAULTED.
+- `migrations/`: payment schema versions including field additions (0004) and data backfill (0005)
 
 ## `backend/maintenance/`
 Tracks repair tickets.

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Home, CreditCard, Wrench, FileText, Users, Menu, X, ArrowUpDown, Receipt, BarChart3, UserCheck, Wallet } from 'lucide-react';
+import { LayoutDashboard, Home, CreditCard, Wrench, FileText, Users, Menu, X, ArrowUpDown, Receipt, BarChart3, UserCheck, Wallet, Megaphone } from 'lucide-react';
 import './index.css';
 
 const Layout = () => {
@@ -20,6 +20,7 @@ const Layout = () => {
         { path: '/financial-reports', label: 'Finance', icon: BarChart3 },
         { path: '/employees', label: 'Employees', icon: UserCheck },
         { path: '/payroll', label: 'Payroll', icon: Wallet },
+        { path: '/broadcasts', label: 'Broadcasts', icon: Megaphone },
         { path: '/reports', label: 'Reports', icon: FileText },
     ];
 

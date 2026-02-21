@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'django_filters',
     'core',
     'houses',
     'tenants',
@@ -52,6 +53,7 @@ INSTALLED_APPS = [
     'reports',
     'finance',
     'payroll',
+    'messaging',
 ]
 
 MIDDLEWARE = [

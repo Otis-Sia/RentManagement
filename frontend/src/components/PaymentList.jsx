@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, DollarSign, Calendar, CheckCircle, AlertCircle, Clock, Send } from 'lucide-react';
+import { Plus, Search, DollarSign, Calendar, CheckCircle, AlertCircle, Clock, Send, FileText } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/format';
 import AddPaymentModal from './AddPaymentModal';
+import PaymentReceiptModal from './PaymentReceiptModal';
 
 const entityLinkStyle = {
     color: 'var(--primary-color)',
@@ -17,6 +18,8 @@ const PaymentList = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [receiptData, setReceiptData] = useState(null);
+    const [showReceipt, setShowReceipt] = useState(false);
 
     useEffect(() => {
         fetchPayments();
@@ -38,6 +41,19 @@ const PaymentList = () => {
     const handlePaymentAdded = (newPayment) => {
         setPayments(prev => [...prev, newPayment]);
         fetchPayments();
+    };
+
+    const handleViewReceipt = async (paymentId) => {
+        try {
+            const response = await fetch(`/api/payments/${paymentId}/receipt/`);
+            if (response.ok) {
+                const data = await response.json();
+                setReceiptData(data);
+                setShowReceipt(true);
+            }
+        } catch (err) {
+            console.error('Error fetching receipt:', err);
+        }
     };
 
     const getStatusColor = (status) => {
@@ -339,6 +355,36 @@ const PaymentList = () => {
                                     <StatusIcon size={14} />
                                     {payment.status}
                                 </div>
+                                {payment.status === 'PAID' && activeTab !== 'LATE' && (
+                                    <button
+                                        onClick={() => handleViewReceipt(payment.id)}
+                                        style={{
+                                            marginTop: '8px',
+                                            padding: '6px 12px',
+                                            backgroundColor: 'transparent',
+                                            border: '1px solid var(--success-color, #28a745)',
+                                            color: 'var(--success-color, #28a745)',
+                                            borderRadius: '6px',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            fontSize: '0.85rem',
+                                            transition: 'all 0.2s',
+                                        }}
+                                        onMouseOver={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'var(--success-color, #28a745)';
+                                            e.currentTarget.style.color = 'white';
+                                        }}
+                                        onMouseOut={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'transparent';
+                                            e.currentTarget.style.color = 'var(--success-color, #28a745)';
+                                        }}
+                                    >
+                                        <FileText size={14} />
+                                        View Receipt
+                                    </button>
+                                )}
                                 {(payment.status === 'LATE' || payment.status === 'FAILED' || payment.status === 'SEVERE' || payment.status === 'DEFAULTED') && (
                                     <button
                                         onClick={() => openWhatsAppRequest({
@@ -393,6 +439,12 @@ const PaymentList = () => {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onPaymentAdded={handlePaymentAdded}
+            />
+
+            <PaymentReceiptModal
+                isOpen={showReceipt}
+                onClose={() => { setShowReceipt(false); setReceiptData(null); }}
+                receiptData={receiptData}
             />
         </div>
     );

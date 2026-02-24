@@ -1,32 +1,56 @@
 # 🚀 Quick Start - Network Mode
 
+## Prerequisites
+- Java 21 installed (`java -version`)
+- PostgreSQL running with `rent_management` database
+- NGINX installed (for network broadcasting)
+
 ## Start Everything
 ```bash
 ./start_system.sh
 ```
 
 That's it! The script will automatically:
-1. ✓ Run database migrations
-2. ✓ Run system tests
-3. ✓ Build production frontend
-4. ✓ Configure and start NGINX
-5. ✓ Start Django backend
+1. ✓ Build the Java application
+2. ✓ Configure and start NGINX
+3. ✓ Start Micronaut backend on port 8000
+
+## Manual Start (Development)
+```bash
+# Run the backend directly
+./gradlew run
+
+# Or compile first, then run
+./gradlew compileJava
+./gradlew run
+```
 
 ## Access Your App
+- **API (local):** `http://localhost:8000/api/`
 - **From any device:** `http://192.168.100.242`
 - **Backend API:** `http://192.168.100.242/api/`
-- **Admin:** `http://192.168.100.242/admin/`
 
-## Features Enabled
-- ✓ Local network broadcasting
-- ✓ PWA installable on all devices
-- ✓ Auto-updates on network reconnection
-- ✓ Offline support
+## Test API Endpoints
+```bash
+# List properties
+curl http://localhost:8000/api/houses/
 
-## Install as PWA
-1. Open `http://192.168.100.242` on any device
-2. Click "Install" or "Add to Home Screen"
-3. Enjoy native app experience!
+# List tenants
+curl http://localhost:8000/api/tenants/
+
+# Dashboard
+curl http://localhost:8000/api/reports/dashboard/
+```
+
+## Database Configuration
+Edit `src/main/resources/application.yml`:
+```yaml
+datasources:
+  default:
+    url: jdbc:postgresql://localhost:5432/rent_management
+    username: postgres
+    password: postgres
+```
 
 ---
 

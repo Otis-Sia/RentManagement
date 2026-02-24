@@ -46,6 +46,10 @@ class BroadcastMessage(models.Model):
     def read_count(self):
         return self.recipients.filter(is_read=True).count()
 
+    @property
+    def whatsapp_sent_count(self):
+        return self.recipients.filter(whatsapp_status='SENT').count()
+
 
 class MessageRecipient(models.Model):
     """Tracks each individual recipient of a broadcast message."""
@@ -53,6 +57,12 @@ class MessageRecipient(models.Model):
     RECIPIENT_TYPE_CHOICES = [
         ('TENANT', 'Tenant'),
         ('EMPLOYEE', 'Employee'),
+    ]
+
+    WHATSAPP_STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('SENT', 'Sent'),
+        ('FAILED', 'Failed'),
     ]
 
     message = models.ForeignKey(
@@ -75,6 +85,12 @@ class MessageRecipient(models.Model):
         blank=True,
         related_name='received_messages'
     )
+    whatsapp_status = models.CharField(
+        max_length=10,
+        choices=WHATSAPP_STATUS_CHOICES,
+        default='PENDING',
+    )
+    whatsapp_sent_at = models.DateTimeField(null=True, blank=True)
     is_read = models.BooleanField(default=False)
     read_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -104,4 +120,12 @@ class MessageRecipient(models.Model):
             return self.tenant.email
         elif self.employee:
             return self.employee.email
+        return ''
+
+    @property
+    def recipient_phone(self):
+        if self.tenant:
+            return self.tenant.phone
+        elif self.employee:
+            return self.employee.phone
         return ''

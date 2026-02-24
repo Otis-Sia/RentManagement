@@ -104,6 +104,25 @@ class BroadcastMessageViewSet(viewsets.ModelViewSet):
 
         return Response({'detail': 'Marked as read.'})
 
+    @action(detail=True, methods=['post'], url_path='mark-whatsapp-sent/(?P<recipient_id>[0-9]+)')
+    def mark_whatsapp_sent(self, request, pk=None, recipient_id=None):
+        """Mark a single recipient's WhatsApp message as sent (link was opened)."""
+        message = self.get_object()
+        try:
+            recipient = message.recipients.get(pk=recipient_id)
+        except MessageRecipient.DoesNotExist:
+            return Response(
+                {'detail': 'Recipient not found.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if recipient.whatsapp_status != 'SENT':
+            recipient.whatsapp_status = 'SENT'
+            recipient.whatsapp_sent_at = timezone.now()
+            recipient.save()
+
+        return Response({'detail': 'Marked as WhatsApp sent.'})
+
 
 @api_view(['GET'])
 def building_addresses(request):

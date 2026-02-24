@@ -527,11 +527,12 @@ const AddPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
         </div >
         )}
 
-        {/* Receipt Modal - shown immediately after payment */}
+        {/* Receipt Modal - shown immediately after payment, auto-sends WhatsApp */}
         <PaymentReceiptModal
             isOpen={showReceipt}
             onClose={handleReceiptClose}
             receiptData={receiptData}
+            autoSendWhatsApp={true}
         />
         </>
     );

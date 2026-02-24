@@ -1,9 +1,84 @@
-import React, { useRef } from 'react';
-import { X, Printer, Download, CheckCircle } from 'lucide-react';
+import React, { useRef, useEffect } from 'react';
+import { X, Printer, CheckCircle, MessageCircle } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/format';
 
-const PaymentReceiptModal = ({ isOpen, onClose, receiptData }) => {
+/**
+ * Build a WhatsApp-friendly plain-text receipt from receipt data.
+ */
+const buildReceiptText = ({ receipt_number, date_issued, tenant, property, payment, utilization, balance }) => {
+    const divider = '─'.repeat(30);
+
+    const utilizationLines = (utilization || []).map((item, i) =>
+        `  ${i + 1}. ${item.description}\n     Amount: ${formatCurrency(item.amount_applied)} — _${item.status}_`
+    );
+
+    const lines = [
+        `✅ *PAYMENT RECEIPT*`,
+        `${receipt_number}`,
+        `Date: ${formatDate(date_issued)}`,
+        ``,
+        divider,
+        `*Tenant:* ${tenant?.name || 'N/A'}`,
+        `*Property:* ${property?.house_number ? `House ${property.house_number}` : 'N/A'}${property?.address ? ` — ${property.address}` : ''}`,
+        divider,
+        ``,
+        `*Payment Details*`,
+        `Type: ${payment?.type || 'N/A'}`,
+        `Method: ${payment?.method || 'N/A'}`,
+        `Date Due: ${formatDate(payment?.date_due)}`,
+        `Date Paid: ${formatDate(payment?.date_paid)}`,
+        ...(payment?.transaction_id ? [`Transaction ID: ${payment.transaction_id}`] : []),
+        ``,
+        divider,
+        ``,
+        `*💰 Money Utilization Breakdown*`,
+        ...utilizationLines,
+        ``,
+        divider,
+        `*Total Paid: ${formatCurrency(payment?.amount_paid || payment?.amount)}*`,
+    ];
+
+    if (balance && parseFloat(balance) > 0) {
+        lines.push(`⚠️ Outstanding Balance: ${formatCurrency(balance)}`);
+    }
+
+    if (payment?.notes) {
+        lines.push(``, `_Notes: ${payment.notes}_`);
+    }
+
+    lines.push(
+        ``,
+        divider,
+        `_This is a computer-generated receipt._`,
+        `_Thank you for your payment!_`
+    );
+
+    return lines.join('\n');
+};
+
+/**
+ * Open WhatsApp with the receipt text pre-filled for the tenant.
+ */
+const sendReceiptViaWhatsApp = (receiptData) => {
+    const phone = (receiptData.tenant?.phone || '').replace(/[^\d]/g, '');
+    if (!phone) {
+        alert(`No phone number available for ${receiptData.tenant?.name || 'this tenant'}.`);
+        return;
+    }
+    const message = buildReceiptText(receiptData);
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+};
+
+const PaymentReceiptModal = ({ isOpen, onClose, receiptData, autoSendWhatsApp = false }) => {
     const receiptRef = useRef(null);
+
+    // Auto-send WhatsApp when modal opens (used after payment submission)
+    useEffect(() => {
+        if (isOpen && receiptData && autoSendWhatsApp) {
+            sendReceiptViaWhatsApp(receiptData);
+        }
+    }, [isOpen, receiptData, autoSendWhatsApp]);
 
     if (!isOpen || !receiptData) return null;
 
@@ -91,6 +166,15 @@ const PaymentReceiptModal = ({ isOpen, onClose, receiptData }) => {
                         <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Payment Receipt</span>
                     </div>
                     <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => sendReceiptViaWhatsApp(receiptData)} style={{
+                            display: 'flex', alignItems: 'center', gap: '4px',
+                            padding: '6px 12px', borderRadius: '6px',
+                            border: 'none',
+                            backgroundColor: '#25D366', cursor: 'pointer',
+                            color: 'white', fontSize: '13px', fontWeight: 600
+                        }}>
+                            <MessageCircle size={14} /> Send WhatsApp
+                        </button>
                         <button onClick={handlePrint} style={{
                             display: 'flex', alignItems: 'center', gap: '4px',
                             padding: '6px 12px', borderRadius: '6px',

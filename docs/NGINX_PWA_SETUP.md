@@ -10,8 +10,8 @@ To deploy the RentManagement system on your local network:
 ```
 
 **Access the app:**
-- From any device on your network: `http://192.168.100.242`
-- Backend API: `http://192.168.100.242/api/`
+- From any device on your network: `http://<your-lan-ip>`
+- Backend API: `http://<your-lan-ip>/api/`
 
 ---
 
@@ -39,7 +39,7 @@ NGINX proxies requests to the Micronaut backend running on port 8000:
 | Mode | URL | Access |
 |------|-----|--------|
 | Development | http://localhost:8000 | Localhost |
-| Production | http://192.168.100.242 | Local network (via NGINX) |
+| Production | http://<your-lan-ip> | Local network (via NGINX) |
 
 ---
 

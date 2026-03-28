@@ -27,8 +27,13 @@ That's it! The script will automatically:
 
 ## Access Your App
 - **API (local):** `http://localhost:8000/api/`
-- **From any device:** `http://192.168.100.242`
-- **Backend API:** `http://192.168.100.242/api/`
+- **From any device:** `http://<your-lan-ip>`
+- **Backend API:** `http://<your-lan-ip>/api/`
+
+Find your LAN IP with:
+```bash
+hostname -I
+```
 
 ## Test API Endpoints
 ```bash

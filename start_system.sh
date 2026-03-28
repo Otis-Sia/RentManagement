@@ -10,9 +10,21 @@ BLUE='\033[0;34m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-FRONTEND_URL="http://192.168.100.242"
+LOCAL_IP=""
+FRONTEND_URL=""
 BROWSER_PID=""
 BROWSER_PROFILE_DIR=""
+
+detect_local_ip() {
+    local ip
+    ip=$(hostname -I 2>/dev/null | tr ' ' '\n' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | grep -v '^127\.' | head -n1)
+
+    if [ -z "$ip" ]; then
+        return 1
+    fi
+
+    echo "$ip"
+}
 
 # Resolve default browser executable from xdg desktop entry
 get_default_browser_command() {
@@ -107,6 +119,14 @@ echo -e "${BLUE}======================================${NC}"
 echo -e "${BLUE} Rent Management System - Network Mode${NC}"
 echo -e "${BLUE}======================================${NC}"
 
+LOCAL_IP=$(detect_local_ip)
+if [ -z "$LOCAL_IP" ]; then
+    echo -e "${RED}Could not detect a LAN IPv4 address automatically.${NC}"
+    echo -e "${YELLOW}Falling back to localhost mode for browser URL output.${NC}"
+    LOCAL_IP="127.0.0.1"
+fi
+FRONTEND_URL="http://${LOCAL_IP}"
+
 # Step 1: Database Migration
 echo ""
 echo -e "${YELLOW}[1/4] Running database migrations...${NC}"
@@ -155,12 +175,18 @@ echo -e "${YELLOW}[3/4] Configuring NGINX...${NC}"
 if [ ! -f /etc/nginx/sites-available/rent-management ]; then
     echo "Installing NGINX configuration (requires sudo)..."
     sudo cp nginx.conf /etc/nginx/sites-available/rent-management
-    sudo ln -sf /etc/nginx/sites-available/rent-management /etc/nginx/sites-enabled/rent-management
     echo -e "${GREEN}✓ NGINX configuration installed${NC}"
 else
     echo "Updating NGINX configuration..."
     sudo cp nginx.conf /etc/nginx/sites-available/rent-management
     echo -e "${GREEN}✓ NGINX configuration updated${NC}"
+fi
+
+# Ensure our site is enabled and default site is disabled
+sudo ln -sf /etc/nginx/sites-available/rent-management /etc/nginx/sites-enabled/rent-management
+if [ -e /etc/nginx/sites-enabled/default ]; then
+    echo "Disabling default NGINX site..."
+    sudo rm -f /etc/nginx/sites-enabled/default
 fi
 
 # Test NGINX configuration

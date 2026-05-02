@@ -1,137 +1,36 @@
-# Rent Management System
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-A property management application for tracking tenants, payments, maintenance, finance, payroll, and messaging — built with **Java 21 + Micronaut + PostgreSQL**.
+## Getting Started
 
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| **Language** | Java 21 |
-| **Framework** | Micronaut 4.x |
-| **Build** | Gradle 8.12 (wrapper included) |
-| **Database** | PostgreSQL (`rent_management` DB) |
-| **ORM** | Hibernate / JPA |
-| **Views** | Thymeleaf (server-rendered) |
-| **Serialization** | Jackson (snake_case) |
-| **Server** | Netty (embedded) |
-
-## Quick Start
+First, run the development server:
 
 ```bash
-# Start everything (DB migrations, build, NGINX, backend)
-./start_system.sh
-
-# Or run the backend directly
-./gradlew run
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-The app runs on **http://localhost:8000** by default.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Project Structure
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-```
-src/main/java/com/rentmanagement/
-├── Application.java              # Entry point
-├── config/
-│   └── DjangoNamingStrategy.java # Maps camelCase → snake_case DB columns
-├── domain/                       # 15 JPA entities
-│   ├── Property.java
-│   ├── Tenant.java
-│   ├── LeaseDocument.java
-│   ├── Payment.java
-│   ├── MaintenanceRequest.java
-│   ├── BankAccount.java
-│   ├── TransactionCategory.java
-│   ├── FinTransaction.java
-│   ├── Invoice.java
-│   ├── InvoiceItem.java
-│   ├── Employee.java
-│   ├── PayrollRun.java
-│   ├── Paycheck.java             # Kenyan tax bracket calculation
-│   ├── BroadcastMessage.java
-│   └── MessageRecipient.java
-├── repository/                   # 15 JPA repositories
-└── controller/                   # 8 REST controllers
-    ├── PropertyController.java       /api/houses/
-    ├── TenantController.java         /api/tenants/
-    ├── PaymentController.java        /api/payments/
-    ├── MaintenanceController.java    /api/maintenance/
-    ├── LeaseDocumentController.java  /api/leases/
-    ├── FinanceController.java        /api/finance/*
-    ├── PayrollController.java        /api/payroll/*
-    ├── MessagingController.java      /api/messaging/*
-    └── DashboardController.java      /api/reports/dashboard/
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-src/main/resources/
-├── application.yml               # DB, CORS, Hibernate, Jackson config
-├── logback.xml                   # Logging config
-└── templates/                    # Thymeleaf templates (planned)
-```
+## Learn More
 
-## API Endpoints
+To learn more about Next.js, take a look at the following resources:
 
-| Endpoint | Methods | Description |
-|---|---|---|
-| `/api/houses/` | GET, POST, PUT, PATCH, DELETE | Property management |
-| `/api/tenants/` | GET, POST, PUT, PATCH, DELETE | Tenant management |
-| `/api/leases/` | GET, POST, DELETE | Lease documents |
-| `/api/payments/` | GET, POST, PUT, PATCH, DELETE | Payment tracking |
-| `/api/payments/{id}/receipt` | GET | Payment receipt |
-| `/api/maintenance/` | GET, POST, PUT, PATCH, DELETE | Maintenance requests |
-| `/api/finance/accounts/` | GET, POST, PUT, DELETE | Bank accounts |
-| `/api/finance/categories/` | GET, POST, PUT, DELETE | Transaction categories |
-| `/api/finance/transactions/` | GET, POST, PUT, DELETE | Financial transactions |
-| `/api/finance/invoices/` | GET, POST, PUT, DELETE | Invoices |
-| `/api/finance/reports/` | GET | P&L, Balance Sheet, Cash Flow, Tax |
-| `/api/payroll/employees/` | GET, POST, PUT, PATCH, DELETE | Employee management |
-| `/api/payroll/payroll-runs/` | GET, POST, PUT, DELETE | Payroll runs |
-| `/api/payroll/paychecks/` | GET, DELETE | Individual paychecks |
-| `/api/messaging/broadcasts/` | GET, POST, DELETE | Broadcast messages |
-| `/api/messaging/building-addresses/` | GET | Building address list |
-| `/api/reports/dashboard/` | GET | Dashboard aggregation |
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-## Key Business Logic
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-- **Payment Reconciliation**: Creating a payment for an existing pending rent record updates it instead of creating a duplicate
-- **Auto-generation**: Paying rent automatically creates next month's pending payment
-- **Kenyan Tax Calculation**: Paychecks compute PAYE, NHIF, NSSF, and Housing Levy based on Kenya 2024/2025 brackets
-- **Financial Reports**: P&L, Balance Sheet, Cash Flow, and Tax Summary computed from transaction data
-- **Broadcast Messaging**: Send to all tenants, building-specific tenants, or all employees
+## Deploy on Vercel
 
-## Configuration
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Database and server settings are in `src/main/resources/application.yml`:
-
-```yaml
-datasources:
-  default:
-    url: jdbc:postgresql://localhost:5432/rent_management
-    username: postgres
-    password: postgres
-
-micronaut:
-  server:
-    port: 8000
-```
-
-## Development
-
-```bash
-# Compile
-./gradlew compileJava
-
-# Run dev server (auto-restart)
-./gradlew run
-
-# Run tests
-./gradlew test
-```
-
-## Deployment
-
-See [docs/QUICKSTART.md](docs/QUICKSTART.md) for network deployment with NGINX.
-
-## Legacy Code
-
-The `backend/` directory contains the original Python/Django implementation (being replaced).
-The `frontend/` directory contains the original React/Vite frontend (being replaced with Thymeleaf).
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

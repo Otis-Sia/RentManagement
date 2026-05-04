@@ -1,12 +1,21 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
-export async function GET() {
+export async function GET(request: Request) {
     try {
-        const { data, error } = await supabase
+        const { searchParams } = new URL(request.url);
+        const vacantOnly = searchParams.get('vacant') === 'true';
+
+        let query = supabaseAdmin
             .from('properties')
             .select('*')
             .order('house_number', { ascending: true });
+
+        if (vacantOnly) {
+            query = query.eq('is_occupied', false);
+        }
+
+        const { data, error } = await query;
 
         if (error) throw error;
         return NextResponse.json(data);
@@ -18,7 +27,7 @@ export async function GET() {
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from('properties')
             .insert([body])
             .select();

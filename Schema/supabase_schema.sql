@@ -3,7 +3,7 @@
 -- 1. ENUMS
 CREATE TYPE app_role AS ENUM ('ADMIN', 'MANAGER', 'TENANT');
 CREATE TYPE payment_type AS ENUM ('RENT', 'DEPOSIT', 'FEE', 'OTHER');
-CREATE TYPE payment_status AS ENUM ('PENDING', 'PAID', 'LATE', 'FAILED', 'SEVERE', 'DEFAULTED');
+CREATE TYPE payment_status AS ENUM ('PENDING', 'PAID', 'LATE', 'PREPAID', 'FAILED', 'SEVERE', 'DEFAULTED');
 CREATE TYPE payment_method AS ENUM ('MPESA', 'CASH', 'BANK', 'CHEQUE', 'OTHER');
 CREATE TYPE maintenance_status AS ENUM ('OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED');
 CREATE TYPE maintenance_priority AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'EMERGENCY');
@@ -116,6 +116,7 @@ CREATE TABLE maintenance_requests (
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     priority maintenance_priority NOT NULL DEFAULT 'MEDIUM',
+    category TEXT NOT NULL DEFAULT 'GENERAL',
     status maintenance_status NOT NULL DEFAULT 'OPEN',
     cost DECIMAL(10,2),
     request_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

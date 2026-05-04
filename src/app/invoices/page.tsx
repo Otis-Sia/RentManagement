@@ -5,17 +5,47 @@ import Link from 'next/link';
 import { 
     Plus, Search, FileText, Send, 
     CheckCircle, Clock, AlertCircle, 
-    Eye, Calendar, User 
+    Eye, Calendar, User, DollarSign, Edit, Trash
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import Modal from '@/components/Modal';
+import SearchableSelect from '@/components/SearchableSelect';
 
 export default function InvoicesPage() {
     const [invoices, setInvoices] = useState<any[]>([]);
+    const [tenants, setTenants] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [currentInvoiceId, setCurrentInvoiceId] = useState<number | null>(null);
+    const [formData, setFormData] = useState({
+        invoice_number: `INV-${Math.floor(Math.random() * 1000000)}`,
+        tenant_id: '',
+        issue_date: new Date().toISOString().split('T')[0],
+        due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        status: 'SENT',
+        subtotal: '',
+        total: '',
+        notes: ''
+    });
+    const [editFormData, setEditFormData] = useState({
+        invoice_number: '',
+        tenant_id: '',
+        issue_date: '',
+        due_date: '',
+        status: 'SENT',
+        subtotal: '',
+        total: '',
+        amount_paid: '',
+        notes: ''
+    });
 
-    useEffect(() => {
+    const fetchInvoices = () => {
+        setLoading(true);
         fetch('/api/invoices/')
             .then(res => res.json())
             .then(data => {
@@ -26,7 +56,129 @@ export default function InvoicesPage() {
                 console.error(err);
                 setLoading(false);
             });
+    };
+
+    const fetchTenants = () => {
+        fetch('/api/tenants/')
+            .then(res => res.json())
+            .then(data => {
+                setTenants(data);
+            })
+            .catch(err => console.error(err));
+    };
+
+    useEffect(() => {
+        fetchInvoices();
+        fetchTenants();
     }, []);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        try {
+            const subtotalVal = parseFloat(formData.subtotal);
+            const response = await fetch('/api/invoices/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...formData,
+                    tenant_id: parseInt(formData.tenant_id),
+                    subtotal: subtotalVal,
+                    total: subtotalVal, // Assuming total = subtotal for simplicity here
+                    amount_paid: 0
+                })
+            });
+
+            if (response.ok) {
+                setIsModalOpen(false);
+                setFormData({
+                    invoice_number: `INV-${Math.floor(Math.random() * 1000000)}`,
+                    tenant_id: '',
+                    issue_date: new Date().toISOString().split('T')[0],
+                    due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    status: 'SENT',
+                    subtotal: '',
+                    total: '',
+                    notes: ''
+                });
+                fetchInvoices();
+            } else {
+                const error = await response.json();
+                alert(`Error: ${error.error}`);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('An error occurred while saving the invoice.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleEdit = (inv: any) => {
+        setCurrentInvoiceId(inv.id);
+        setEditFormData({
+            invoice_number: inv.invoice_number || '',
+            tenant_id: inv.tenant_id?.toString() || '',
+            issue_date: inv.issue_date || '',
+            due_date: inv.due_date || '',
+            status: inv.status || 'SENT',
+            subtotal: inv.subtotal?.toString() || '',
+            total: inv.total?.toString() || '',
+            amount_paid: inv.amount_paid?.toString() || '0',
+            notes: inv.notes || ''
+        });
+        setIsEditModalOpen(true);
+    };
+
+    const handleEditSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!currentInvoiceId) return;
+        setIsUpdating(true);
+        try {
+            const response = await fetch(`/api/invoices/${currentInvoiceId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...editFormData,
+                    tenant_id: parseInt(editFormData.tenant_id),
+                    subtotal: parseFloat(editFormData.subtotal),
+                    total: parseFloat(editFormData.total),
+                    amount_paid: parseFloat(editFormData.amount_paid)
+                })
+            });
+
+            if (response.ok) {
+                setIsEditModalOpen(false);
+                fetchInvoices();
+            } else {
+                const error = await response.json();
+                alert(`Error: ${error.error}`);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('An error occurred while updating the invoice.');
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleDelete = async (id: number) => {
+        if (!confirm('Are you sure you want to delete this invoice?')) return;
+        try {
+            const response = await fetch(`/api/invoices/${id}`, {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                fetchInvoices();
+            } else {
+                const error = await response.json();
+                alert(`Error: ${error.error}`);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('An error occurred while deleting the invoice.');
+        }
+    };
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -53,7 +205,7 @@ export default function InvoicesPage() {
     const totals = invoices.reduce((acc, inv) => {
         acc.total += parseFloat(inv.total || 0);
         acc.paid += parseFloat(inv.amount_paid || 0);
-        acc.outstanding += parseFloat(inv.balance_due || 0);
+        acc.outstanding += (parseFloat(inv.total || 0) - parseFloat(inv.amount_paid || 0));
         return acc;
     }, { total: 0, paid: 0, outstanding: 0 });
 
@@ -64,7 +216,7 @@ export default function InvoicesPage() {
         return matchesSearch && matchesStatus;
     });
 
-    if (loading) return (
+    if (loading && invoices.length === 0) return (
         <div className="flex items-center justify-center min-h-[50vh]">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
         </div>
@@ -74,10 +226,13 @@ export default function InvoicesPage() {
         <div className="container mx-auto p-4 md:p-8 animate-in fade-in duration-500">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold">Invoices</h1>
+                    <h1 className="text-3xl font-bold text-slate-900">Invoices</h1>
                     <p className="text-gray-500">Create and manage client invoices</p>
                 </div>
-                <button className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-lg font-bold flex items-center gap-2 shadow-sm transition-all active:scale-95">
+                <button 
+                    onClick={() => setIsModalOpen(true)}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-lg font-bold flex items-center gap-2 shadow-sm transition-all active:scale-95"
+                >
                     <Plus size={18} />
                     Create Invoice
                 </button>
@@ -144,11 +299,27 @@ export default function InvoicesPage() {
                                     </div>
                                 </div>
                             </div>
-                            <div className="text-right">
-                                <p className="text-lg font-bold text-gray-900">{formatCurrency(inv.total)}</p>
-                                <div className={`flex items-center justify-end gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${styles} mt-1`}>
-                                    <StatusIcon size={12} />
-                                    {inv.status}
+                            <div className="flex flex-col gap-2">
+                                <div className="text-right">
+                                    <p className="text-lg font-bold text-gray-900">{formatCurrency(inv.total)}</p>
+                                    <div className={`flex items-center justify-end gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${styles} mt-1`}>
+                                        <StatusIcon size={12} />
+                                        {inv.status}
+                                    </div>
+                                </div>
+                                <div className="flex justify-end gap-2">
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); handleEdit(inv); }}
+                                        className="p-1.5 text-slate-400 hover:text-orange-500 transition-colors"
+                                    >
+                                        <Edit size={16} />
+                                    </button>
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); handleDelete(inv.id); }}
+                                        className="p-1.5 text-slate-400 hover:text-red-500 transition-colors"
+                                    >
+                                        <Trash size={16} />
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -160,6 +331,217 @@ export default function InvoicesPage() {
                     </div>
                 )}
             </div>
+
+            <Modal 
+                isOpen={isModalOpen} 
+                onClose={() => setIsModalOpen(false)} 
+                title="Create New Invoice"
+            >
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">Invoice #</label>
+                            <input 
+                                required
+                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                                value={formData.invoice_number}
+                                onChange={(e) => setFormData({...formData, invoice_number: e.target.value})}
+                            />
+                        </div>
+                        <SearchableSelect 
+                            label="Tenant"
+                            placeholder="Search for a tenant..."
+                            options={tenants.map(t => ({
+                                id: t.id,
+                                label: t.name,
+                                subLabel: `House ${t.properties?.house_number}`
+                            }))}
+                            value={formData.tenant_id}
+                            onChange={(val) => setFormData({...formData, tenant_id: val})}
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">Issue Date</label>
+                            <input 
+                                required
+                                type="date"
+                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                                value={formData.issue_date}
+                                onChange={(e) => setFormData({...formData, issue_date: e.target.value})}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">Due Date</label>
+                            <input 
+                                required
+                                type="date"
+                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                                value={formData.due_date}
+                                onChange={(e) => setFormData({...formData, due_date: e.target.value})}
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">Amount</label>
+                        <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                            <input 
+                                required
+                                type="number"
+                                className="w-full pl-7 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                                value={formData.subtotal}
+                                onChange={(e) => setFormData({...formData, subtotal: e.target.value})}
+                                placeholder="0.00"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">Notes</label>
+                        <textarea 
+                            rows={2}
+                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                            value={formData.notes}
+                            onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                            placeholder="Optional notes..."
+                        />
+                    </div>
+                    <div className="pt-4 flex justify-end gap-3">
+                        <button 
+                            type="button"
+                            onClick={() => setIsModalOpen(false)}
+                            className="px-6 py-2 border border-slate-200 text-slate-600 rounded-lg font-bold hover:bg-slate-50 transition-all"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="px-6 py-2 bg-orange-500 text-white rounded-lg font-bold hover:bg-orange-600 transition-all disabled:opacity-50 flex items-center gap-2"
+                        >
+                            {isSubmitting ? <div className="w-4 h-4 border-2 border-white border-t-transparent animate-spin rounded-full"></div> : null}
+                            Create Invoice
+                        </button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Edit Modal */}
+            <Modal 
+                isOpen={isEditModalOpen} 
+                onClose={() => setIsEditModalOpen(false)} 
+                title="Edit Invoice"
+            >
+                <form onSubmit={handleEditSubmit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">Invoice #</label>
+                            <input 
+                                required
+                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                                value={editFormData.invoice_number}
+                                onChange={(e) => setEditFormData({...editFormData, invoice_number: e.target.value})}
+                            />
+                        </div>
+                        <SearchableSelect 
+                            label="Tenant"
+                            placeholder="Search for a tenant..."
+                            options={tenants.map(t => ({
+                                id: t.id,
+                                label: t.name,
+                                subLabel: `House ${t.properties?.house_number}`
+                            }))}
+                            value={editFormData.tenant_id}
+                            onChange={(val) => setEditFormData({...editFormData, tenant_id: val})}
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">Issue Date</label>
+                            <input 
+                                required
+                                type="date"
+                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                                value={editFormData.issue_date}
+                                onChange={(e) => setEditFormData({...editFormData, issue_date: e.target.value})}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">Due Date</label>
+                            <input 
+                                required
+                                type="date"
+                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                                value={editFormData.due_date}
+                                onChange={(e) => setEditFormData({...editFormData, due_date: e.target.value})}
+                            />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">Total Amount</label>
+                            <input 
+                                required
+                                type="number"
+                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                                value={editFormData.total}
+                                onChange={(e) => setEditFormData({...editFormData, total: e.target.value, subtotal: e.target.value})}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">Paid Amount</label>
+                            <input 
+                                required
+                                type="number"
+                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                                value={editFormData.amount_paid}
+                                onChange={(e) => setEditFormData({...editFormData, amount_paid: e.target.value})}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">Status</label>
+                            <select 
+                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                                value={editFormData.status}
+                                onChange={(e) => setEditFormData({...editFormData, status: e.target.value})}
+                            >
+                                <option value="DRAFT">Draft</option>
+                                <option value="SENT">Sent</option>
+                                <option value="PAID">Paid</option>
+                                <option value="PARTIAL">Partial</option>
+                                <option value="OVERDUE">Overdue</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">Notes</label>
+                        <textarea 
+                            rows={2}
+                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                            value={editFormData.notes}
+                            onChange={(e) => setEditFormData({...editFormData, notes: e.target.value})}
+                        />
+                    </div>
+                    <div className="pt-4 flex justify-end gap-3">
+                        <button 
+                            type="button"
+                            onClick={() => setIsEditModalOpen(false)}
+                            className="px-6 py-2 border border-slate-200 text-slate-600 rounded-lg font-bold hover:bg-slate-50 transition-all"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            type="submit"
+                            disabled={isUpdating}
+                            className="px-6 py-2 bg-orange-500 text-white rounded-lg font-bold hover:bg-orange-600 transition-all disabled:opacity-50 flex items-center gap-2"
+                        >
+                            {isUpdating ? <div className="w-4 h-4 border-2 border-white border-t-transparent animate-spin rounded-full"></div> : null}
+                            Update Invoice
+                        </button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 }
+

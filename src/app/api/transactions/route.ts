@@ -4,9 +4,9 @@ import { supabase } from '@/lib/supabase';
 export async function GET() {
     try {
         const { data, error } = await supabase
-            .from('transactions')
+            .from('fin_transactions')
             .select('*')
-            .order('transaction_date', { ascending: false });
+            .order('date', { ascending: false });
 
         if (error) throw error;
         return NextResponse.json(data);
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     try {
         const body = await request.json();
         const { data, error } = await supabase
-            .from('transactions')
+            .from('fin_transactions')
             .insert([body])
             .select();
 

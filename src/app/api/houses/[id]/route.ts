@@ -1,15 +1,16 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { id } = params;
+        const { id: idParam } = await params;
+        const id = parseInt(idParam);
 
         // Fetch house basic info
-        const { data: house, error: houseError } = await supabase
+        const { data: house, error: houseError } = await supabaseAdmin
             .from('properties')
             .select('*')
             .eq('id', id)
@@ -18,21 +19,25 @@ export async function GET(
         if (houseError) throw houseError;
 
         // Fetch current tenant
-        const { data: currentTenant } = await supabase
+        const { data: activeTenants } = await supabaseAdmin
             .from('tenants')
             .select('*')
             .eq('property_id', id)
             .eq('is_active', true)
-            .single();
+            .order('created_at', { ascending: false })
+            .limit(1);
+        
+        const currentTenant = activeTenants && activeTenants.length > 0 ? activeTenants[0] : null;
 
         // Fetch payment history
-        const { data: payments } = await supabase
+        const { data: payments } = await supabaseAdmin
             .from('payments')
             .select(`
                 *,
-                tenants (
+                tenants!inner (
                     id,
-                    name
+                    name,
+                    property_id
                 )
             `)
             .eq('tenants.property_id', id)
@@ -40,13 +45,14 @@ export async function GET(
             .limit(10);
 
         // Fetch maintenance requests
-        const { data: maintenance } = await supabase
+        const { data: maintenance } = await supabaseAdmin
             .from('maintenance_requests')
             .select(`
                 *,
-                tenants (
+                tenants!inner (
                     id,
-                    name
+                    name,
+                    property_id
                 )
             `)
             .eq('tenants.property_id', id)
@@ -54,7 +60,7 @@ export async function GET(
             .limit(10);
 
         // Fetch tenant history
-        const { data: history } = await supabase
+        const { data: history } = await supabaseAdmin
             .from('tenants')
             .select('*')
             .eq('property_id', id)
@@ -82,14 +88,15 @@ export async function GET(
 
 export async function PATCH(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const body = await request.json();
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from('properties')
             .update(body)
-            .eq('id', params.id)
+            .eq('id', id)
             .select();
 
         if (error) throw error;
